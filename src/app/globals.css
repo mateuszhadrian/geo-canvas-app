@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas-bg: #f8f9fa;
+  --color-toolbar-bg: #1e1e2e;
+  --color-sidebar-bg: #ffffff;
+}

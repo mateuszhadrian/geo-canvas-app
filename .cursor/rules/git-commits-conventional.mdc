@@ -1,0 +1,46 @@
+---
+description: Conventional Commits and formatting for generated or suggested git commit messages
+alwaysApply: true
+---
+
+# Git commit messages
+
+When generating or suggesting git commit messages, follow these rules strictly.
+
+## 1. Format (Conventional Commits)
+
+- `feat:` new features
+- `fix:` bug fixes
+- `docs:` documentation only
+- `style:` formatting, semicolons, etc. (no logic change)
+- `refactor:` refactors in production code
+- `test:` new/changed tests
+- `chore:` tooling, build, deps; no production code change
+
+## 2. Structure
+
+- **Subject:** max **50** characters, lowercase type, colon, space, then description (e.g. `feat: add shape duplicate shortcut`).
+- **Body:** optional; explain **what** and **why**, not how. Wrap lines at **72** characters.
+- **Blank line** between subject and body.
+
+## 3. Tone and language
+
+- **Language:** English.
+- **Mood:** imperative, present tense (`add`, not `added` or `adds`).
+- **Subject line:** do not capitalize the first word after the type; do **not** end the subject with a period.
+
+## 4. Atomic commits
+
+If changes mix unrelated concerns, suggest **splitting** them into separate commits and outline what each commit should contain.
+
+## Examples
+
+```text
+feat: add json export for canvas state
+
+Users need a portable backup before we add cloud sync.
+```
+
+```text
+fix: prevent negative radius on circle resize
+```

@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+# AI Rules for GeoCanvasApp
+
+GeoCanvas is a minimalist, browser-based geometric shape editor built as an educational portfolio project. It supports creating, editing, and organizing shapes on an interactive canvas, with save and export options.
+
+The UI style is inspired by tools like tldraw and Excalidraw: clean, geometric, and minimal. The app is a pure SPA (no backend). Data persistence is limited to localStorage autosave and local JSON import/export.
+
+## Technology Stack
+
+- Framework: Next.js (App Router)
+- Canvas: Konva.js + react-konva
+- Language: TypeScript 5+ (strict mode)
+- State management: Zustand + Immer + zundo (temporal middleware)
+- Styling: TailwindCSS v4 (CSS-first configuration)
+- Color picker: @uiw/react-color
+- Deploy: Vercel
+- Required runtime: Node.js >=20.9.0
+
+## Clean Code Guidelines
+
+- Use linter feedback to improve code while making changes.
+- Prioritize error handling and edge cases.
+- Handle errors and edge cases at the start of functions.
+- Use early returns for failures to avoid deep nesting.
+- Keep the happy path near the end for readability.
+- Avoid unnecessary `else`; prefer `if-return`.
+- Use guard clauses for preconditions and invalid states.
+- Implement proper logging and user-friendly error messages.
+- Consider custom error types/factories for consistent handling.

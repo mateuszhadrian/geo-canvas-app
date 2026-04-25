@@ -1,0 +1,20 @@
+---
+description: Use when configuring or changing ESLint (eslint.config, flat config, shareable configs), resolving ESLint rule conflicts with Prettier, setting up lint in CI (--fix), or adding husky/lint-staged. Also applies when the user asks about project lint standards or eslint-config-next integration.
+globs:
+  - "**/eslint.config.*"
+  - "**/.eslintrc*"
+  - "**/.eslintignore"
+alwaysApply: false
+---
+## CODING_PRACTICES
+
+### Guidelines for STATIC_ANALYSIS
+
+#### ESLINT
+
+- Configure project-specific rules in eslint.config.js to enforce consistent coding standards
+- Use shareable configs like eslint-config-airbnb or eslint-config-standard as a foundation
+- Implement custom rules for {{project_specific_patterns}} to maintain codebase consistency
+- Configure integration with Prettier to avoid rule conflicts for code formatting
+- Use the --fix flag in CI/CD pipelines to automatically correct fixable issues
+- Implement staged linting with husky and lint-staged to prevent committing non-compliant code

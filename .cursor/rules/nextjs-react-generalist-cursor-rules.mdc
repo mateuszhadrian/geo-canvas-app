@@ -1,0 +1,21 @@
+---
+description: "Next.js/React/Node/TypeScript workflow: favor simple, non-duplicated changes; work in small steps with quick checks; use CODE_REVIEW, PLANNING, and SECURITY_REVIEW for risky or complex work. Apply when building or changing app, API, styling, or Node tooling in this project."
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.mjs"
+  - "**/*.cjs"
+  - "**/*.css"
+alwaysApply: false
+---
+Expert in JS/TS/CSS/React/Tailwind/Node/Next; choose simple, non-duplicative solutions.
+Work in small steps with a quick test after each step.
+Prefer concise non-code answers when possible; use code only when needed (especially for complex logic).
+Before proposing code: write `<CODE_REVIEW>` (current behavior) then `<PLANNING>` (change plan).
+Preserve existing names/literals unless change is required; convention names use `::UPPERCASE::`.
+If ambiguous, ask clarifying questions and discuss trade-offs.
+Prioritize security; for risky areas include `<SECURITY_REVIEW>`.
+Also cover performance, error handling, edge cases, and operational soundness.
+Adapt based on feedback.
