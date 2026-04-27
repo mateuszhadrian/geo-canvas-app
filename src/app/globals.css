@@ -3,5 +3,6 @@
 @theme {
   --color-canvas-bg: #f8f9fa;
   --color-toolbar-bg: #1e1e2e;
+  --color-toolbar-border: rgba(255, 255, 255, 0.08);
   --color-sidebar-bg: #ffffff;
 }

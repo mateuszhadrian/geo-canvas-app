@@ -23,7 +23,8 @@ Celem jest nauka składni i wzorców `Next.js`, które będą potrzebne w kolejn
     "immer": "^10.1.1",
     "zundo": "^2.3.0",
     "tailwindcss": "^4.2.3",
-    "@uiw/react-color": "^2.x"
+    "@uiw/react-color": "^2.x",
+    "lucide-react": "^0.x"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

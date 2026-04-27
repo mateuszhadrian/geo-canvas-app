@@ -14,8 +14,54 @@ Stack technologiczny:
 - Zarządzanie stanem: Zustand + Immer + zundo (temporal middleware)
 - Stylowanie: TailwindCSS v4 (konfiguracja CSS-first)
 - Color picker: @uiw/react-color
+- Ikony: lucide-react
 - Deploy: Vercel
 - Wymagany runtime: Node.js >=20.9.0
+
+Architektura kodu — zasada shape-centric modules:
+
+Każdy typ figury żyje w swoim własnym katalogu `src/shapes/<nazwa>/` i zawiera 6 plików:
+
+```
+src/shapes/
+├── _base/              # BaseShape interface, domyślne wartości bazowe, ShapeDefinition interface
+├── rect/               # prostokąt — typy, defaults, factory, Renderer, PropertiesPanel, index
+├── circle/             # koło
+├── ellipse/            # elipsa
+├── triangle/           # trójkąt
+├── line/               # linia
+├── custom/             # (przyszłość) figury złożone / grupy
+├── index.ts            # unia Shape, re-eksporty typów
+└── registry.ts         # SHAPE_REGISTRY + SHAPE_TYPES — jedyne miejsce wiedzy o wszystkich figurach
+```
+
+Store jest podzielony według rodzaju stanu, nie według figury:
+
+```
+src/store/
+├── slices/
+│   ├── shapes.ts       # interface ShapesSlice (shapes[], stickyDefaults, CRUD)
+│   ├── selection.ts    # interface SelectionSlice (selectedShapeIds)
+│   └── viewport.ts     # interface ViewportSlice (canvasScale, canvasPosition)
+├── use-canvas-store.ts # łączy slices w jeden store (Zustand + Immer)
+└── types.ts            # ShapeUpdate, CanvasState; re-eksportuje typy z @/shapes
+```
+
+Dlaczego taka struktura:
+
+1. **Każda modyfikacja figury = jeden katalog.** Dodanie np. ukosowania krawędzi do prostokąta wymaga zmian wyłącznie w `src/shapes/rect/` — typy, defaults, renderer i panel właściwości w jednym miejscu. Żaden inny plik nie potrzebuje modyfikacji.
+
+2. **Dodanie nowej figury = nowy katalog + jedna linijka w registry.** Po stworzeniu katalogu `src/shapes/polygon/` z 6 plikami wystarczy zarejestrować go w `registry.ts`. Toolbar, canvas i panel właściwości automatycznie go wykryją — zero zmiany w kodzie tych komponentów.
+
+3. **Shape Registry jako jedyny punkt wiedzy.** Komponenty (`ShapeNode`, `CanvasApp`, przyszły toolbar) importują wyłącznie z `registry.ts`, nigdy bezpośrednio z modułów figur. To gwarantuje, że logika app-level pozostaje shape-agnostic niezależnie od liczby figur.
+
+4. **Store podzielony według odpowiedzialności, nie figury.** Stan figur (`shapes[]`), zaznaczenia (`selectedShapeIds`) i widoku (`canvasScale`, `canvasPosition`) to trzy różne domeny. Podział na slices odzwierciedla te domeny i ułatwia dodawanie nowych fragmentów stanu (np. `history` slice dla undo/redo) bez naruszania istniejącego kodu.
+
+5. **Przyszłe figury złożone.** Katalog `src/shapes/custom/` (lub `group/`) będzie obsługiwał połączone figury / grupy (MVP Extended, REQ-040) — ten sam interfejs `ShapeDefinition`, ten sam registry, ta sama integracja ze store.
+
+Szczegółowa analiza architektury: `.ai/application-structure-analysis.md`
+
+---
 
 Layout aplikacji:
 
@@ -67,7 +113,12 @@ Problemy rozwiązywane przez aplikację:
 #### Manipulacja kształtami
 
 - REQ-009: Każdy kształt obsługuje przeciąganie (`draggable`).
-- REQ-010: Każdy kształt obsługuje resize i rotate przez Konva `Transformer`.
+- REQ-010: Każdy kształt obsługuje resize i rotate przez własny system uchwytów (nie Konva Transformer). System uchwytów składa się z:
+  - **4 uchwytów bocznych** — jeden na środku każdego boku bounding boxa kształtu (góra, prawo, dół, lewo); przeciąganie uchwytu na danym boku przesuwa tę krawędź bounding boxa, co zmienia długość obu boków figury sąsiadujących z tą krawędzią — efekt rozciągania/zwężania figury. Dla trójkąta — ze względu na brak równoległych boków — zmiana krawędzi bounding boxa skaluje całą figurę, przez co zmienia się również długość boku trójkąta odpowiadającego tej krawędzi,
+  - **1 uchwytu rotacji** — umieszczonego w lewym górnym rogu bounding boxa; przeciąganie go obraca kształt/grupę wokół jej centrum.
+- REQ-010a: Uchwyty są widoczne wyłącznie gdy **jednocześnie** spełnione są oba warunki: kształt jest zaznaczony **oraz** kursor myszy znajduje się nad kształtem (hover + selection).
+- REQ-010b: Gdy kursor opuści obszar kształtu, uchwyty znikają — nawet jeśli kształt nadal pozostaje zaznaczony.
+- REQ-010c: Samo najeżdżanie kursorem na niezaznaczony kształt (hover bez zaznaczenia) nie powoduje pojawienia się uchwytów.
 - REQ-011: Zaznaczony kształt można usunąć klawiszem `Delete` lub `Backspace`.
 - REQ-012: Zaznaczony kształt można zduplikować skrótem `Ctrl+D` — duplikat pojawia się z offsetem `+10px/+10px` względem oryginału.
 - REQ-013: Naciśnięcie `Escape` usuwa zaznaczenie.
@@ -85,7 +136,7 @@ Problemy rozwiązywane przez aplikację:
 - REQ-019: Kliknięcie pustego obszaru canvasa w trybie strzałki odznacza wszystkie kształty.
 - REQ-020: Przeciąganie na pustym obszarze canvasa w trybie strzałki tworzy marquee selection (zaznaczenie prostokątne).
 - REQ-021: `Shift + klik` dodaje lub usuwa kształt z zaznaczenia (multi-select).
-- REQ-022: Przy multi-select Konva Transformer wyświetla wspólny bounding box dla wszystkich zaznaczonych kształtów.
+- REQ-022: Przy multi-select system uchwytów wyświetla wspólny bounding box dla wszystkich zaznaczonych kształtów; uchwyty boczne i uchwyt rotacji działają na całą grupę jednocześnie.
 - REQ-023: `Shift + resize` w multi-select skaluje zaznaczone kształty proporcjonalnie.
 
 #### Panel właściwości (sidebar)
@@ -180,7 +231,7 @@ Problemy rozwiązywane przez aplikację:
 ### W zakresie MVP Core
 
 - Tworzenie kształtów: prostokąt, koło/elipsa, trójkąt (RegularPolygon), linia (prosty odcinek).
-- Manipulacja: drag, resize, rotate przez Transformer.
+- Manipulacja: drag, resize przez uchwyty boczne, rotate przez uchwyt rotacji (własny system uchwytów, nie Konva Transformer).
 - Nawigacja: zoom, pan, tryb strzałki i dłoni.
 - Zaznaczanie: pojedyncze, multi-select (marquee + Shift+klik).
 - Sidebar: właściwości podstawowe (X/Y, szerokość, wysokość, fill, stroke, strokeWidth, opacity).
@@ -230,8 +281,8 @@ Opis: Jako użytkownik chcę kliknąć narzędzie "Prostokąt" w toolbarze, aby 
 Kryteria akceptacji:
 - Po kliknięciu ikony prostokąta w toolbarze na canvasie pojawia się nowy prostokąt w centrum aktualnie widocznego obszaru canvasa.
 - Prostokąt ma domyślne właściwości: fill `#4A90D9`, stroke `#2C5F8A`, strokeWidth `2`, opacity `1`.
-- Prostokąt jest natychmiast zaznaczony i otoczony Konva Transformerem.
-- Prostokąt można natychmiast przeciągać, resizować i obracać.
+- Prostokąt jest natychmiast zaznaczony; uchwyty (4 boczne + rotacji) są widoczne gdy kursor znajduje się nad kształtem.
+- Prostokąt można natychmiast przeciągać, resizować przez uchwyty boczne i obracać przez uchwyt rotacji.
 - Właściwości prostokąta są widoczne w sidebarze po prawej stronie.
 
 ---
@@ -244,8 +295,8 @@ Opis: Jako użytkownik chcę kliknąć narzędzie "Koło/Elipsa" w toolbarze, ab
 Kryteria akceptacji:
 - Po kliknięciu ikony koła/elipsy nowy kształt pojawia się w centrum widocznego canvasa.
 - Kształt ma domyślne właściwości: fill `#E8A838`, stroke `#B07820`, strokeWidth `2`, opacity `1`.
-- Kształt jest natychmiast zaznaczony i gotowy do manipulacji.
-- Resize przez Transformer pozwala niezależnie skalować oś X i Y, uzyskując elipsę.
+- Kształt jest natychmiast zaznaczony; uchwyty (4 boczne + rotacji) są widoczne gdy kursor znajduje się nad kształtem.
+- Przeciąganie lewego/prawego uchwytu bocznego skaluje oś X, przeciąganie górnego/dolnego skaluje oś Y — pozwala to uzyskać elipsę.
 - Właściwości kształtu są widoczne w sidebarze.
 
 ---
@@ -258,8 +309,8 @@ Opis: Jako użytkownik chcę kliknąć narzędzie "Trójkąt" w toolbarze, aby p
 Kryteria akceptacji:
 - Po kliknięciu ikony trójkąta nowy kształt (RegularPolygon z sides=3) pojawia się w centrum widocznego canvasa.
 - Trójkąt ma domyślne właściwości: fill `#5CB85C`, stroke `#3A7A3A`, strokeWidth `2`, opacity `1`.
-- Kształt jest natychmiast zaznaczony i gotowy do manipulacji.
-- Transformer obsługuje resize i rotate trójkąta spójnie z innymi kształtami.
+- Kształt jest natychmiast zaznaczony; uchwyty (4 boczne + rotacji) są widoczne gdy kursor znajduje się nad kształtem.
+- Uchwyty boczne i rotacji działają spójnie dla trójkąta tak samo jak dla pozostałych typów kształtów.
 
 ---
 
@@ -272,7 +323,7 @@ Kryteria akceptacji:
 - Po wybraniu narzędzia linia i kliknięciu na canvasie przeciąganie tworzy odcinek od punktu A do punktu B.
 - Linia ma domyślne właściwości: stroke `#333333`, strokeWidth `2`, opacity `1`, styl solid.
 - Po puszczeniu myszy linia jest zaznaczona i widoczna w sidebarze.
-- Linia obsługuje drag i rotate przez Transformer.
+- Linia obsługuje drag; uchwyty boczne pozwalają na zmianę długości i proporcji linii, uchwyt rotacji w lewym górnym rogu bounding boxa obraca linię.
 
 ---
 
@@ -305,27 +356,42 @@ Kryteria akceptacji:
 
 ---
 
-US-007
-Tytuł: Resize kształtu przez Transformer
+US-006b
+Tytuł: Widoczność uchwytów — wyłącznie przy zaznaczeniu i hoveru jednocześnie
 
-Opis: Jako użytkownik chcę zmieniać rozmiar kształtu za pomocą uchwytów Konva Transformera.
+Opis: Jako użytkownik chcę widzieć uchwyty manipulacji tylko gdy jestem kursorem nad zaznaczonym kształtem, aby canvas był czysty gdy kursor jest gdzieś indziej.
 
 Kryteria akceptacji:
-- Zaznaczony kształt otoczony jest Transformerem z uchwytami na rogach i krawędziach.
-- Przeciąganie uchwytu zmienia wymiary kształtu.
-- Szerokość i wysokość w sidebarze aktualizują się w czasie rzeczywistym.
-- Transformer działa spójnie dla wszystkich typów kształtów (Rect, Circle/Ellipse, RegularPolygon, Line).
+- Uchwyty (4 boczne + 1 rotacji) są widoczne wyłącznie gdy kształt jest zaznaczony ORAZ kursor myszy znajduje się nad kształtem — oba warunki muszą być spełnione jednocześnie.
+- Gdy kursor opuszcza obszar zaznaczonego kształtu, uchwyty znikają (mimo że kształt nadal jest zaznaczony).
+- Najeżdżanie kursorem na niezaznaczony kształt nie powoduje pojawienia się uchwytów.
+- Na pustym obszarze canvasa (brak kształtu pod kursorem) żadne uchwyty nie są wyświetlane.
+
+---
+
+US-007
+Tytuł: Resize kształtu przez uchwyty boczne
+
+Opis: Jako użytkownik chcę zmieniać rozmiar kształtu za pomocą uchwytów bocznych pojawiających się przy zaznaczeniu lub najechaniu kursorem.
+
+Kryteria akceptacji:
+- Gdy kształt jest zaznaczony ORAZ kursor jest nad kształtem, na środku każdego boku jego bounding boxa pojawia się uchwyt boczny (łącznie 4 uchwyty).
+- Przeciąganie uchwytu na danym boku przesuwa tę krawędź bounding boxa, zmieniając długość obu boków figury sąsiadujących z tą krawędzią (efekt rozciągania). Dla trójkąta zmiana krawędzi skaluje całą figurę — zmienia się również długość boku trójkąta odpowiadającego przesuniętej krawędzi.
+- Gdy kursor opuści obszar kształtu, uchwyty boczne znikają — nawet gdy kształt jest zaznaczony.
+- Szerokość i wysokość w sidebarze aktualizują się w czasie rzeczywistym podczas przeciągania uchwytu.
+- Uchwyty boczne działają spójnie dla wszystkich typów kształtów (Rect, Circle/Ellipse, RegularPolygon, Line).
 
 ---
 
 US-008
-Tytuł: Rotacja kształtu przez Transformer
+Tytuł: Rotacja kształtu przez uchwyt rotacji
 
-Opis: Jako użytkownik chcę obracać kształt za pomocą uchwytu rotacji Konva Transformera.
+Opis: Jako użytkownik chcę obracać kształt za pomocą uchwytu rotacji pojawiającego się w lewym górnym rogu kształtu.
 
 Kryteria akceptacji:
-- Zaznaczony kształt ma widoczny uchwyt rotacji.
-- Przeciąganie uchwytu rotacji obraca kształt wokół jego centrum.
+- Gdy kształt jest zaznaczony ORAZ kursor jest nad kształtem, w lewym górnym rogu jego bounding boxa pojawia się uchwyt rotacji.
+- Przeciąganie uchwytu rotacji obraca kształt wokół jego centrum geometrycznego.
+- Gdy kursor opuści obszar kształtu, uchwyt rotacji znika — nawet gdy kształt jest zaznaczony.
 - Kąt obrotu wyświetlany jest w sidebarze (MVP Extended).
 - Rotacja działa dla wszystkich typów kształtów.
 
@@ -364,7 +430,7 @@ Opis: Jako użytkownik chcę nacisnąć Escape, aby anulować zaznaczenie i wró
 
 Kryteria akceptacji:
 - Naciśnięcie `Escape` przy zaznaczonym kształcie lub grupie usuwa zaznaczenie.
-- Transformer znika z canvasa.
+- Uchwyty (boczne i rotacji) znikają z canvasa (chyba że kursor nadal znajduje się nad kształtem — wtedy pozostają widoczne w trybie hover).
 - Sidebar przechodzi do stanu pustego (placeholder + skróty).
 
 ---
@@ -450,7 +516,7 @@ Opis: Jako użytkownik chcę narysować prostokąt zaznaczenia na pustym obszarz
 Kryteria akceptacji:
 - W trybie strzałki przeciąganie na pustym obszarze canvasa rysuje prostokąt marquee.
 - Po puszczeniu myszy wszystkie kształty przecięte lub zawarte w prostokącie są zaznaczone.
-- Transformer wyświetla wspólny bounding box.
+- System uchwytów wyświetla wspólny bounding box dla zaznaczonych kształtów z uchwytami bocznymi i uchwytem rotacji.
 - Sidebar przechodzi w tryb właściwości multi-select (lub pokazuje wspólne pola).
 
 ---
@@ -876,6 +942,6 @@ Kryteria akceptacji:
 
 ### Definicja "gotowe" per milestone
 
-MVP Core — aplikacja pozwala na tworzenie i edycję 4 typów kształtów, nawigację po scenie, edycję podstawowych właściwości w sidebarze oraz autosave/autoload z localStorage. Działa wyłącznie na desktopie. Brak błędów konsoli.
+MVP Core — aplikacja pozwala na tworzenie i edycję 4 typów kształtów, nawigację po scenie, edycję podstawowych właściwości w sidebarze oraz autosave/autoload z localStorage. Manipulacja kształtami odbywa się wyłącznie przez własny system uchwytów (4 uchwyty boczne + uchwyt rotacji w lewym górnym rogu) widocznych przy zaznaczeniu i przy hoveru. Działa wyłącznie na desktopie. Brak błędów konsoli.
 
 MVP Extended — aplikacja posiada Undo/Redo, grupowanie, zarządzanie warstwami, eksport/import JSON oraz eksport PNG. Działa na urządzeniach dotykowych. Wszystkie skróty klawiaturowe działają poprawnie.

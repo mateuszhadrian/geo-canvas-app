@@ -1,54 +1,24 @@
-'use client'
+export type { Shape, ShapeType, ShapeProperties, BaseShape, RectShape, CircleShape, EllipseShape, TriangleShape, LineShape } from '@/shapes'
 
-export type ShapeType = 'rect' | 'circle' | 'ellipse' | 'triangle' | 'line'
+import type { Shape, ShapeType, ShapeProperties } from '@/shapes'
 
-export interface BaseShape {
-  id: string
-  type: ShapeType
+export type ShapeUpdate = Partial<{
   x: number
   y: number
   rotation: number
   opacity: number
   stroke: string
   strokeWidth: number
-}
-
-export interface RectShape extends BaseShape {
-  type: 'rect'
+  fill: string
   width: number
   height: number
-  fill: string
   cornerRadius: number
-}
-
-export interface CircleShape extends BaseShape {
-  type: 'circle'
   radius: number
-  fill: string
-}
-
-export interface EllipseShape extends BaseShape {
-  type: 'ellipse'
   radiusX: number
   radiusY: number
-  fill: string
-}
-
-export interface TriangleShape extends BaseShape {
-  type: 'triangle'
-  radius: number
-  fill: string
-}
-
-export interface LineShape extends BaseShape {
-  type: 'line'
   points: number[]
   dash: boolean
-}
-
-export type Shape = RectShape | CircleShape | EllipseShape | TriangleShape | LineShape
-
-export type ShapeProperties = Omit<Shape, 'id' | 'type' | 'x' | 'y'>
+}>
 
 export interface CanvasState {
   shapes: Shape[]
