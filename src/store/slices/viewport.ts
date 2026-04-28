@@ -1,6 +1,8 @@
+import type { Point } from '@/shapes'
+
 export interface ViewportSlice {
   canvasScale: number
-  canvasPosition: { x: number; y: number }
+  canvasPosition: Point
   setCanvasScale: (scale: number) => void
-  setCanvasPosition: (pos: { x: number; y: number }) => void
+  setCanvasPosition: (pos: Point) => void
 }

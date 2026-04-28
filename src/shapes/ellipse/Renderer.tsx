@@ -1,32 +1,11 @@
 'use client'
 
-import { Group, Ellipse } from 'react-konva'
+import { Ellipse } from 'react-konva'
 import type { EllipseShape } from './types'
 
-interface Props {
-  shape: EllipseShape
-  draggable: boolean
-  isSelected: boolean
-  onClick: (addToSelection: boolean) => void
-  onDragStart: () => void
-  onDragMove: (e: any) => void
-  onDragEnd: (pos: { x: number; y: number }) => void
-}
-
-export function EllipseRenderer({ shape, draggable, isSelected, onClick, onDragStart, onDragMove, onDragEnd }: Props) {
+export function EllipseRenderer({ shape, isSelected }: { shape: EllipseShape; isSelected: boolean }) {
   return (
-    <Group
-      id={shape.id}
-      x={shape.x}
-      y={shape.y}
-      rotation={shape.rotation}
-      opacity={shape.opacity}
-      draggable={draggable}
-      onClick={(e) => onClick(e.evt.metaKey || e.evt.ctrlKey)}
-      onDragStart={onDragStart}
-      onDragMove={onDragMove}
-      onDragEnd={(e) => onDragEnd({ x: e.target.x(), y: e.target.y() })}
-    >
+    <>
       <Ellipse
         radiusX={shape.radiusX}
         radiusY={shape.radiusY}
@@ -46,6 +25,6 @@ export function EllipseRenderer({ shape, draggable, isSelected, onClick, onDragS
           perfectDrawEnabled={false}
         />
       )}
-    </Group>
+    </>
   )
 }

@@ -2,16 +2,15 @@
 
 import { useMemo, useEffect, useRef, useState } from 'react'
 import { useCanvasStore } from '@/store/use-canvas-store'
-import { encodeDocument, serializeDocument } from '@/lib/documentCodec'
+import { encodeDocument } from '@/lib/documentCodec'
 
 export function PictureDataDisplay() {
   const shapes = useCanvasStore((s) => s.shapes)
-  const stickyDefaults = useCanvasStore((s) => s.stickyDefaults)
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
 
   const json = useMemo(
-    () => serializeDocument(encodeDocument({ shapes, stickyDefaults })),
-    [shapes, stickyDefaults],
+    () => JSON.stringify({ layers: encodeDocument({ shapes, stickyDefaults: {} }).layers }, null, 2),
+    [shapes],
   )
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -44,7 +43,7 @@ export function PictureDataDisplay() {
         }}
       >
         <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">
-          Scene JSON
+          JSON
         </span>
         <button
           onClick={() => setVisible((v) => !v)}

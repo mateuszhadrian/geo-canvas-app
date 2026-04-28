@@ -1,34 +1,13 @@
 'use client'
 
-import { Group, Rect } from 'react-konva'
+import { Rect } from 'react-konva'
 import type { RectShape } from './types'
 
-interface Props {
-  shape: RectShape
-  draggable: boolean
-  isSelected: boolean
-  onClick: (addToSelection: boolean) => void
-  onDragStart: () => void
-  onDragMove: (e: any) => void
-  onDragEnd: (pos: { x: number; y: number }) => void
-}
-
-export function RectRenderer({ shape, draggable, isSelected, onClick, onDragStart, onDragMove, onDragEnd }: Props) {
+export function RectRenderer({ shape, isSelected }: { shape: RectShape; isSelected: boolean }) {
   const ow = Math.max(2, shape.width - 2)
   const oh = Math.max(2, shape.height - 2)
   return (
-    <Group
-      id={shape.id}
-      x={shape.x}
-      y={shape.y}
-      rotation={shape.rotation}
-      opacity={shape.opacity}
-      draggable={draggable}
-      onClick={(e) => onClick(e.evt.metaKey || e.evt.ctrlKey)}
-      onDragStart={onDragStart}
-      onDragMove={onDragMove}
-      onDragEnd={(e) => onDragEnd({ x: e.target.x(), y: e.target.y() })}
-    >
+    <>
       <Rect
         offsetX={shape.width / 2}
         offsetY={shape.height / 2}
@@ -53,6 +32,6 @@ export function RectRenderer({ shape, draggable, isSelected, onClick, onDragStar
           perfectDrawEnabled={false}
         />
       )}
-    </Group>
+    </>
   )
 }

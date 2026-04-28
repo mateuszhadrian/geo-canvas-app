@@ -15,8 +15,13 @@ const CROSSHAIR_COLOR = '#A4ABB7'
 const HALF_W = CANVAS_WIDTH / 2
 const HALF_H = CANVAS_HEIGHT / 2
 
+// Konva does not expose _context in its public API. This accesses the underlying
+// CanvasRenderingContext2D directly so we can use native canvas calls for the
+// dot-grid (arc/fill in a loop) which are faster than Konva path objects.
+type KonvaContextInternal = { _context: CanvasRenderingContext2D }
+
 function drawCanvas(ctx: Konva.Context) {
-  const nc = (ctx as unknown as { _context: CanvasRenderingContext2D })._context
+  const nc = (ctx as unknown as KonvaContextInternal)._context
 
   nc.fillStyle = CANVAS_BG
   nc.fillRect(-HALF_W, -HALF_H, CANVAS_WIDTH, CANVAS_HEIGHT)

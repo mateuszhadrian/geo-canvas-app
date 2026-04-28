@@ -1,4 +1,4 @@
-export type { BaseShape, ShapeType } from './_base/types'
+export type { BaseShape, ShapeType, Point } from './_base/types'
 export type { RectShape } from './rect/types'
 export type { CircleShape } from './circle/types'
 export type { EllipseShape } from './ellipse/types'

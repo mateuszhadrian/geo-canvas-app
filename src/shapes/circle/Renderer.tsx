@@ -1,32 +1,11 @@
 'use client'
 
-import { Group, Circle } from 'react-konva'
+import { Circle } from 'react-konva'
 import type { CircleShape } from './types'
 
-interface Props {
-  shape: CircleShape
-  draggable: boolean
-  isSelected: boolean
-  onClick: (addToSelection: boolean) => void
-  onDragStart: () => void
-  onDragMove: (e: any) => void
-  onDragEnd: (pos: { x: number; y: number }) => void
-}
-
-export function CircleRenderer({ shape, draggable, isSelected, onClick, onDragStart, onDragMove, onDragEnd }: Props) {
+export function CircleRenderer({ shape, isSelected }: { shape: CircleShape; isSelected: boolean }) {
   return (
-    <Group
-      id={shape.id}
-      x={shape.x}
-      y={shape.y}
-      rotation={shape.rotation}
-      opacity={shape.opacity}
-      draggable={draggable}
-      onClick={(e) => onClick(e.evt.metaKey || e.evt.ctrlKey)}
-      onDragStart={onDragStart}
-      onDragMove={onDragMove}
-      onDragEnd={(e) => onDragEnd({ x: e.target.x(), y: e.target.y() })}
-    >
+    <>
       <Circle
         radius={shape.radius}
         fill={shape.fill}
@@ -44,6 +23,6 @@ export function CircleRenderer({ shape, draggable, isSelected, onClick, onDragSt
           perfectDrawEnabled={false}
         />
       )}
-    </Group>
+    </>
   )
 }

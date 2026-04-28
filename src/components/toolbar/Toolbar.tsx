@@ -1,6 +1,6 @@
 'use client'
 
-import { MousePointer2, Hand, Square, Circle, Triangle, Minus } from 'lucide-react'
+import { MousePointer2, Hand, Square, Circle, Triangle, Minus, BringToFront, SendToBack, ArrowUp, ArrowDown } from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { useCanvasStore } from '@/store/use-canvas-store'
 import { SHAPE_REGISTRY } from '@/shapes/registry'
@@ -45,6 +45,13 @@ export function Toolbar() {
   const setSelectedShapeIds = useCanvasStore((s) => s.setSelectedShapeIds)
   const canvasPosition = useCanvasStore((s) => s.canvasPosition)
   const canvasScale = useCanvasStore((s) => s.canvasScale)
+  const selectedShapeIds = useCanvasStore((s) => s.selectedShapeIds)
+  const bringForward = useCanvasStore((s) => s.bringForward)
+  const bringToFront = useCanvasStore((s) => s.bringToFront)
+  const sendBackward = useCanvasStore((s) => s.sendBackward)
+  const sendToBack = useCanvasStore((s) => s.sendToBack)
+
+  const hasSelection = selectedShapeIds.length > 0
 
   return (
     <div
@@ -82,6 +89,30 @@ export function Toolbar() {
             setSelectedShapeIds([shape.id])
           }}
           className="flex h-10 w-10 items-center justify-center rounded transition-colors text-gray-400 hover:bg-white/10 hover:text-gray-200 active:bg-white/15 active:text-white"
+        >
+          <Icon size={18} />
+        </button>
+      ))}
+
+      <div className="my-1 w-8 border-t" style={{ borderColor: 'var(--color-toolbar-border)' }} />
+
+      {[
+        { label: 'Przesuń warstwę wyżej', icon: ArrowUp, action: () => bringForward(selectedShapeIds) },
+        { label: 'Przesuń na wierzch', icon: BringToFront, action: () => bringToFront(selectedShapeIds) },
+        { label: 'Przesuń warstwę niżej', icon: ArrowDown, action: () => sendBackward(selectedShapeIds) },
+        { label: 'Przesuń na spód', icon: SendToBack, action: () => sendToBack(selectedShapeIds) },
+      ].map(({ label, icon: Icon, action }) => (
+        <button
+          key={label}
+          title={label}
+          disabled={!hasSelection}
+          onClick={action}
+          className={[
+            'flex h-10 w-10 items-center justify-center rounded transition-colors',
+            hasSelection
+              ? 'text-gray-400 hover:bg-white/10 hover:text-gray-200 active:bg-white/15 active:text-white'
+              : 'text-gray-600 cursor-not-allowed',
+          ].join(' ')}
         >
           <Icon size={18} />
         </button>

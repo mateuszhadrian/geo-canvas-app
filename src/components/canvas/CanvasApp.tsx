@@ -9,17 +9,23 @@ import { Toolbar } from '@/components/toolbar/Toolbar'
 import { PictureDataDisplay } from './PictureDataDisplay'
 import { JsonImportInput } from './JsonImportInput'
 import { SelectionMarquee } from './SelectionMarquee'
+import { MultiLineHandles } from './MultiLineHandles'
+import { MultiShapeHandles } from './MultiShapeHandles'
 import { getShapeBoundingBox, intersectsBoundingBox } from '@/lib/shapeBounds'
+import type { BoundingBox } from '@/lib/shapeBounds'
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/canvasConstants'
+import type { Point } from '@/shapes'
+import { useMultilineDrawing } from '@/shapes/line/useMultilineDrawing'
+import { PropertiesSidebar } from '@/components/sidebar/PropertiesSidebar'
 
 const ZOOM_STEP = 0.05
 const MAX_SCALE = 2
 
-const getMinScale = () =>
+const getMinScale = (): number =>
   Math.max(window.innerWidth / CANVAS_WIDTH, window.innerHeight / CANVAS_HEIGHT)
 const MARQUEE_THRESHOLD = 3
 
-function clampPosition(pos: { x: number; y: number }, scale: number): { x: number; y: number } {
+function clampPosition(pos: Point, scale: number): Point {
   const vw = window.innerWidth
   const vh = window.innerHeight
   const hw = (CANVAS_WIDTH * scale) / 2
@@ -38,14 +44,21 @@ export default function CanvasApp() {
   const setCanvasPosition = useCanvasStore((state) => state.setCanvasPosition)
   const setCanvasScale = useCanvasStore((state) => state.setCanvasScale)
   const setSelectedShapeIds = useCanvasStore((state) => state.setSelectedShapeIds)
+  const removeShapes = useCanvasStore((state) => state.removeShapes)
+  const undo = useCanvasStore((state) => state.undo)
+  const redo = useCanvasStore((state) => state.redo)
+
+  const { multilineFirstLineId, tryExtendOrClose } = useMultilineDrawing()
   const [isPanning, setIsPanning] = useState(false)
-  const [marqueeRect, setMarqueeRect] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
+  const [marqueeRect, setMarqueeRect] = useState<BoundingBox | null>(null)
   // Refs avoid stale closures in Konva event handlers across React renders
-  const marqueeStartRef = useRef<{ x: number; y: number } | null>(null)
-  const marqueeRectRef = useRef<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
+  const marqueeStartRef = useRef<Point | null>(null)
+  const marqueeRectRef = useRef<BoundingBox | null>(null)
   // Konva fires 'click' immediately after 'mouseup' on empty canvas even after a drag;
   // this flag tells onClick to skip deselection when a marquee selection just happened.
   const didMarqueeSelectRef = useRef(false)
+  // Same pattern: skip the canvas click that fires right after a handle drag ends.
+  const didHandleDragRef = useRef(false)
 
   const scaleRef = useRef(canvasScale)
   const positionRef = useRef(canvasPosition)
@@ -98,6 +111,38 @@ export default function CanvasApp() {
     return () => window.removeEventListener('resize', handleResize)
   }, [setCanvasScale, setCanvasPosition])
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target instanceof HTMLElement ? e.target : null
+      if (!target) return
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+
+      if (e.key === 'Escape') {
+        setSelectedShapeIds([])
+        return
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+        return
+      }
+
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault()
+        redo()
+        return
+      }
+
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        const { selectedShapeIds: ids } = useCanvasStore.getState()
+        if (ids.length > 0) removeShapes(ids)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [setSelectedShapeIds, removeShapes, undo, redo])
+
   // Clear marquee if mouse is released outside the Stage
   useEffect(() => {
     const handleGlobalMouseUp = () => {
@@ -138,6 +183,19 @@ export default function CanvasApp() {
             didMarqueeSelectRef.current = false
             return
           }
+          if (didHandleDragRef.current) {
+            didHandleDragRef.current = false
+            return
+          }
+
+          const stage = e.target.getStage()
+          const raw = stage?.getPointerPosition()
+          if (raw) {
+            const clickX = (raw.x - positionRef.current.x) / scaleRef.current
+            const clickY = (raw.y - positionRef.current.y) / scaleRef.current
+            if (tryExtendOrClose(clickX, clickY)) return
+          }
+
           setSelectedShapeIds([])
         }}
         onMouseDown={(e) => {
@@ -204,8 +262,14 @@ export default function CanvasApp() {
         <GridBackground />
         <Layer>
           {shapes.map((shape) => (
-            <ShapeNode key={shape.id} shape={shape} />
+            <ShapeNode
+              key={shape.id}
+              shape={shape}
+              disableListening={shape.id === multilineFirstLineId}
+            />
           ))}
+          {activeTool === 'select' && <MultiLineHandles onDragEnd={() => { didHandleDragRef.current = true }} />}
+          {activeTool === 'select' && <MultiShapeHandles onDragEnd={() => { didHandleDragRef.current = true }} />}
           {marqueeRect && (
             <SelectionMarquee
               x1={marqueeRect.x1}
@@ -218,6 +282,7 @@ export default function CanvasApp() {
       </Stage>
       <PictureDataDisplay />
       <JsonImportInput />
+      <PropertiesSidebar />
     </div>
   )
 }

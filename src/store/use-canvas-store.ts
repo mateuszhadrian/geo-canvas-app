@@ -9,30 +9,224 @@ import type { ShapesSlice } from './slices/shapes'
 import type { SelectionSlice } from './slices/selection'
 import type { ViewportSlice } from './slices/viewport'
 import type { ToolSlice, ToolType } from './slices/tool'
+import type { HistorySlice } from './slices/history'
+import type { HistoryCommand } from './history/types'
+import type { ShapeUpdatePair } from './types'
 
-type CanvasStore = ShapesSlice & SelectionSlice & ViewportSlice & ToolSlice
+const MAX_HISTORY = 50
+
+type HistoryState = Pick<HistorySlice, '_past' | '_future' | 'canUndo' | 'canRedo'>
+
+function pushCmd(state: HistoryState, command: HistoryCommand) {
+  state._past.push(command)
+  if (state._past.length > MAX_HISTORY) state._past.shift()
+  state._future = []
+  state.canUndo = true
+  state.canRedo = false
+}
+
+type MutableShapesState = { shapes: Shape[] }
+
+function applyForward(state: MutableShapesState, command: HistoryCommand): void {
+  switch (command.type) {
+    case 'ADD_SHAPE':
+      state.shapes.push(command.shape)
+      break
+    case 'REMOVE_SHAPES': {
+      const ids = new Set(command.shapes.map((s: Shape) => s.id))
+      state.shapes = state.shapes.filter((s: Shape) => !ids.has(s.id))
+      break
+    }
+    case 'UPDATE_SHAPE': {
+      const shape = state.shapes.find((s: Shape) => s.id === command.id)
+      if (shape) Object.assign(shape, command.after)
+      break
+    }
+    case 'UPDATE_SHAPES':
+      command.updates.forEach(({ id, after }: ShapeUpdatePair) => {
+        const s = state.shapes.find((sh: Shape) => sh.id === id)
+        if (s) Object.assign(s, after)
+      })
+      break
+    case 'SET_SHAPES':
+      state.shapes = command.after
+      break
+    case 'REORDER_SHAPES': {
+      const idxMap = new Map(command.after.map((id: string, i: number) => [id, i]))
+      state.shapes = [...state.shapes].sort(
+        (a: Shape, b: Shape) => (idxMap.get(a.id) ?? 0) - (idxMap.get(b.id) ?? 0)
+      )
+      break
+    }
+  }
+}
+
+function applyInverse(state: MutableShapesState, command: HistoryCommand): void {
+  switch (command.type) {
+    case 'ADD_SHAPE':
+      state.shapes = state.shapes.filter((s: Shape) => s.id !== command.shape.id)
+      break
+    case 'REMOVE_SHAPES':
+      state.shapes.push(...command.shapes)
+      break
+    case 'UPDATE_SHAPE': {
+      const shape = state.shapes.find((s: Shape) => s.id === command.id)
+      if (shape) Object.assign(shape, command.before)
+      break
+    }
+    case 'UPDATE_SHAPES':
+      command.updates.forEach(({ id, before }: ShapeUpdatePair) => {
+        const s = state.shapes.find((sh: Shape) => sh.id === id)
+        if (s) Object.assign(s, before)
+      })
+      break
+    case 'SET_SHAPES':
+      state.shapes = command.before
+      break
+    case 'REORDER_SHAPES': {
+      const idxMap = new Map(command.before.map((id: string, i: number) => [id, i]))
+      state.shapes = [...state.shapes].sort(
+        (a: Shape, b: Shape) => (idxMap.get(a.id) ?? 0) - (idxMap.get(b.id) ?? 0)
+      )
+      break
+    }
+  }
+}
+
+type CanvasStore = ShapesSlice & SelectionSlice & ViewportSlice & ToolSlice & HistorySlice
 
 export const useCanvasStore = create<CanvasStore>()(
   immer((set) => ({
-    // shapes slice
+    // ── shapes slice ───────────────────────────────────────────────────────────
+
     shapes: [],
     stickyDefaults: {},
+
     addShape: (shape: Shape) =>
-      set((state) => { state.shapes.push(shape) }),
+      set((state) => {
+        state.shapes.push(shape)
+        pushCmd(state, { type: 'ADD_SHAPE', shape })
+      }),
+
     removeShape: (id: string) =>
       set((state) => {
+        const removed = state.shapes.filter((s) => s.id === id) as Shape[]
         state.shapes = state.shapes.filter((s) => s.id !== id)
         state.selectedShapeIds = state.selectedShapeIds.filter((sid) => sid !== id)
+        if (removed.length > 0) pushCmd(state, { type: 'REMOVE_SHAPES', shapes: removed })
       }),
+
+    removeShapes: (ids: string[]) =>
+      set((state) => {
+        const set_ = new Set(ids)
+        const removed = state.shapes.filter((s) => set_.has(s.id)) as Shape[]
+        state.shapes = state.shapes.filter((s) => !set_.has(s.id))
+        state.selectedShapeIds = []
+        if (removed.length > 0) pushCmd(state, { type: 'REMOVE_SHAPES', shapes: removed })
+      }),
+
     updateShape: (id: string, updates: ShapeUpdate) =>
+      set((state) => {
+        const shape = state.shapes.find((s) => s.id === id)
+        if (!shape) return
+        const before: ShapeUpdate = {}
+        for (const key of Object.keys(updates) as Array<keyof ShapeUpdate>) {
+          ;(before as Record<string, unknown>)[key] = (shape as Record<string, unknown>)[key]
+        }
+        Object.assign(shape, updates)
+        pushCmd(state, { type: 'UPDATE_SHAPE', id, before, after: updates })
+      }),
+
+    // Applies update without pushing to history — used during live handle drags.
+    updateShapeTransient: (id: string, updates: ShapeUpdate) =>
       set((state) => {
         const shape = state.shapes.find((s) => s.id === id)
         if (shape) Object.assign(shape, updates)
       }),
-    setShapes: (shapes: Shape[]) =>
-      set((state) => { state.shapes = shapes }),
 
-    // selection slice
+    // Applies x/y updates for all shapes in one commit and records a single UPDATE_SHAPES command.
+    // Used by ShapeNode.onDragEnd for multi-shape drag.
+    moveShapes: (items: ShapeUpdatePair[]) =>
+      set((state) => {
+        items.forEach(({ id, after }) => {
+          const shape = state.shapes.find((s) => s.id === id)
+          if (shape) Object.assign(shape, after)
+        })
+        pushCmd(state, { type: 'UPDATE_SHAPES', updates: items })
+      }),
+
+    // Records UPDATE_SHAPE without re-applying state — used by ShapeHandles.onMouseUp
+    // after transient updates have already produced the final state.
+    commitShapeUpdate: (id: string, before: ShapeUpdate, after: ShapeUpdate) =>
+      set((state) => {
+        pushCmd(state, { type: 'UPDATE_SHAPE', id, before, after })
+      }),
+
+    // Records UPDATE_SHAPES without re-applying state — used by MultiShapeHandles.onMouseUp.
+    commitShapesUpdate: (updates: ShapeUpdatePair[]) =>
+      set((state) => {
+        pushCmd(state, { type: 'UPDATE_SHAPES', updates })
+      }),
+
+    setShapes: (shapes: Shape[]) =>
+      set((state) => {
+        const before = state.shapes.slice() as Shape[]
+        state.shapes = shapes
+        pushCmd(state, { type: 'SET_SHAPES', before, after: shapes })
+      }),
+
+    bringForward: (ids: string[]) =>
+      set((state) => {
+        const before = state.shapes.map((s) => s.id)
+        const selected = new Set(ids)
+        const arr = state.shapes
+        for (let i = arr.length - 2; i >= 0; i--) {
+          if (selected.has(arr[i].id) && !selected.has(arr[i + 1].id)) {
+            ;[arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]
+          }
+        }
+        const after = state.shapes.map((s) => s.id)
+        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+      }),
+
+    bringToFront: (ids: string[]) =>
+      set((state) => {
+        const before = state.shapes.map((s) => s.id)
+        const selected = new Set(ids)
+        const rest = state.shapes.filter((s) => !selected.has(s.id))
+        const top = state.shapes.filter((s) => selected.has(s.id))
+        state.shapes = [...rest, ...top]
+        const after = state.shapes.map((s) => s.id)
+        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+      }),
+
+    sendBackward: (ids: string[]) =>
+      set((state) => {
+        const before = state.shapes.map((s) => s.id)
+        const selected = new Set(ids)
+        const arr = state.shapes
+        for (let i = 1; i < arr.length; i++) {
+          if (selected.has(arr[i].id) && !selected.has(arr[i - 1].id)) {
+            ;[arr[i], arr[i - 1]] = [arr[i - 1], arr[i]]
+          }
+        }
+        const after = state.shapes.map((s) => s.id)
+        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+      }),
+
+    sendToBack: (ids: string[]) =>
+      set((state) => {
+        const before = state.shapes.map((s) => s.id)
+        const selected = new Set(ids)
+        const rest = state.shapes.filter((s) => !selected.has(s.id))
+        const bottom = state.shapes.filter((s) => selected.has(s.id))
+        state.shapes = [...bottom, ...rest]
+        const after = state.shapes.map((s) => s.id)
+        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+      }),
+
+    // ── selection slice ────────────────────────────────────────────────────────
+
     selectedShapeIds: [],
     setSelectedShapeIds: (ids: string[]) =>
       set((state) => { state.selectedShapeIds = ids }),
@@ -43,7 +237,8 @@ export const useCanvasStore = create<CanvasStore>()(
         else state.selectedShapeIds.splice(idx, 1)
       }),
 
-    // viewport slice
+    // ── viewport slice ─────────────────────────────────────────────────────────
+
     canvasScale: typeof window !== 'undefined'
       ? Math.max(window.innerWidth / CANVAS_WIDTH, window.innerHeight / CANVAS_HEIGHT)
       : 1,
@@ -55,9 +250,48 @@ export const useCanvasStore = create<CanvasStore>()(
     setCanvasPosition: (pos) =>
       set((state) => { state.canvasPosition = pos }),
 
-    // tool slice
+    // ── tool slice ─────────────────────────────────────────────────────────────
+
     activeTool: 'select' as ToolType,
     setActiveTool: (tool: ToolType) =>
       set((state) => { state.activeTool = tool }),
+
+    // ── history slice ──────────────────────────────────────────────────────────
+
+    _past: [],
+    _future: [],
+    canUndo: false,
+    canRedo: false,
+
+    pushHistory: (command: HistoryCommand) =>
+      set((state) => { pushCmd(state, command) }),
+
+    undo: () =>
+      set((state) => {
+        const command = state._past.pop()
+        if (!command) return
+        applyInverse(state, command)
+        state._future.unshift(command)
+        state.canUndo = state._past.length > 0
+        state.canRedo = true
+      }),
+
+    redo: () =>
+      set((state) => {
+        const command = state._future.shift()
+        if (!command) return
+        applyForward(state, command)
+        state._past.push(command)
+        state.canUndo = true
+        state.canRedo = state._future.length > 0
+      }),
+
+    clearHistory: () =>
+      set((state) => {
+        state._past = []
+        state._future = []
+        state.canUndo = false
+        state.canRedo = false
+      }),
   }))
 )

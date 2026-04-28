@@ -17,13 +17,21 @@ export function getShapeBoundingBox(shape: Shape): BoundingBox {
         y2: shape.y + shape.height / 2,
       }
     case 'circle':
-    case 'triangle':
       return {
         x1: shape.x - shape.radius,
         y1: shape.y - shape.radius,
         x2: shape.x + shape.radius,
         y2: shape.y + shape.radius,
       }
+    case 'triangle': {
+      const [x0, y0, x1, y1, x2, y2] = shape.vertices
+      return {
+        x1: shape.x + Math.min(x0, x1, x2),
+        y1: shape.y + Math.min(y0, y1, y2),
+        x2: shape.x + Math.max(x0, x1, x2),
+        y2: shape.y + Math.max(y0, y1, y2),
+      }
+    }
     case 'ellipse':
       return {
         x1: shape.x - shape.radiusX,

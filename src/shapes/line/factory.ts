@@ -8,6 +8,6 @@ export function createLine(pos: { x: number; y: number }): LineShape {
     id: generateId(),
     x: pos.x,
     y: pos.y,
-    points: [-100, -20, 0, 40, 100, -40],
+    points: [0, 0, 500, 0],
   }
 }

@@ -1,5 +1,7 @@
 export type ShapeType = 'rect' | 'circle' | 'ellipse' | 'triangle' | 'line'
 
+export type Point = { x: number; y: number }
+
 export interface BaseShape {
   id: string
   type: ShapeType

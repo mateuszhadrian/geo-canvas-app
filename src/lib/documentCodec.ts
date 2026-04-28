@@ -4,7 +4,7 @@ import {
   DEFAULT_CANVAS_SETTINGS,
   DEFAULT_LAYER_META,
 } from './document'
-import type { CanvasDocument, DocumentLayer } from './document'
+import type { CanvasDocument, DocumentLayer, DocumentMeta } from './document'
 import type { Shape, ShapeType, ShapeProperties } from '@/shapes'
 
 // ---------------------------------------------------------------------------
@@ -77,10 +77,23 @@ export function serializeDocument(doc: CanvasDocument): string {
   return JSON.stringify(doc, null, 2)
 }
 
+function buildDefaultMeta(): DocumentMeta {
+  const now = new Date().toISOString()
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    id: generateId(),
+    name: 'Untitled',
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
 /**
  * Parse a JSON string and return a `CanvasDocument`.
- * Throws a descriptive `Error` if the string is not valid JSON or is missing
- * the required top-level fields.
+ * Accepts three formats:
+ *   1. Full CanvasDocument (meta + canvas + layers)
+ *   2. Object with just `layers` — meta and canvas filled with defaults
+ *   3. Bare array — treated as the layers array directly
  */
 export function parseDocument(json: string): CanvasDocument {
   let raw: unknown
@@ -90,21 +103,31 @@ export function parseDocument(json: string): CanvasDocument {
     throw new Error('Invalid document: not valid JSON.')
   }
 
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    throw new Error('Invalid document: root must be a JSON object.')
+  // Format 3: bare layers array
+  if (Array.isArray(raw)) {
+    return {
+      meta: buildDefaultMeta(),
+      canvas: DEFAULT_CANVAS_SETTINGS,
+      layers: raw as DocumentLayer[],
+      stickyDefaults: {},
+    }
+  }
+
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid document: root must be a JSON object or a layers array.')
   }
 
   const doc = raw as Record<string, unknown>
 
-  if (!doc.meta || typeof doc.meta !== 'object') {
-    throw new Error('Invalid document: missing "meta" field.')
-  }
-  if (!doc.canvas || typeof doc.canvas !== 'object') {
-    throw new Error('Invalid document: missing "canvas" field.')
-  }
   if (!Array.isArray(doc.layers)) {
     throw new Error('Invalid document: "layers" must be an array.')
   }
 
-  return doc as unknown as CanvasDocument
+  // Format 1 & 2: fill meta/canvas with defaults if absent
+  return {
+    meta: (doc.meta as DocumentMeta) ?? buildDefaultMeta(),
+    canvas: (doc.canvas as CanvasDocument['canvas']) ?? DEFAULT_CANVAS_SETTINGS,
+    layers: doc.layers as DocumentLayer[],
+    stickyDefaults: (doc.stickyDefaults as CanvasDocument['stickyDefaults']) ?? {},
+  }
 }

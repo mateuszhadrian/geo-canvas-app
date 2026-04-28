@@ -113,8 +113,9 @@ Problemy rozwiązywane przez aplikację:
 #### Manipulacja kształtami
 
 - REQ-009: Każdy kształt obsługuje przeciąganie (`draggable`).
-- REQ-010: Każdy kształt obsługuje resize i rotate przez własny system uchwytów (nie Konva Transformer). System uchwytów składa się z:
+- REQ-010: Każdy kształt obsługuje resize, skalowanie proporcjonalne i rotate przez własny system uchwytów (nie Konva Transformer). System uchwytów składa się z:
   - **4 uchwytów bocznych** — jeden na środku każdego boku bounding boxa kształtu (góra, prawo, dół, lewo); przeciąganie uchwytu na danym boku przesuwa tę krawędź bounding boxa, co zmienia długość obu boków figury sąsiadujących z tą krawędzią — efekt rozciągania/zwężania figury. Dla trójkąta — ze względu na brak równoległych boków — zmiana krawędzi bounding boxa skaluje całą figurę, przez co zmienia się również długość boku trójkąta odpowiadającego tej krawędzi,
+  - **1 uchwytu skalowania proporcjonalnego** — umieszczonego w prawym górnym rogu bounding boxa; przeciąganie go skaluje całą figurę/grupę proporcjonalnie (zachowując aspect ratio), niezależnie od kierunku przeciągania,
   - **1 uchwytu rotacji** — umieszczonego w lewym górnym rogu bounding boxa; przeciąganie go obraca kształt/grupę wokół jej centrum.
 - REQ-010a: Uchwyty są widoczne wyłącznie gdy **jednocześnie** spełnione są oba warunki: kształt jest zaznaczony **oraz** kursor myszy znajduje się nad kształtem (hover + selection).
 - REQ-010b: Gdy kursor opuści obszar kształtu, uchwyty znikają — nawet jeśli kształt nadal pozostaje zaznaczony.
@@ -137,7 +138,7 @@ Problemy rozwiązywane przez aplikację:
 - REQ-020: Przeciąganie na pustym obszarze canvasa w trybie strzałki tworzy marquee selection (zaznaczenie prostokątne).
 - REQ-021: `Shift + klik` dodaje lub usuwa kształt z zaznaczenia (multi-select).
 - REQ-022: Przy multi-select system uchwytów wyświetla wspólny bounding box dla wszystkich zaznaczonych kształtów; uchwyty boczne i uchwyt rotacji działają na całą grupę jednocześnie.
-- REQ-023: `Shift + resize` w multi-select skaluje zaznaczone kształty proporcjonalnie.
+- REQ-023: Uchwyt skalowania proporcjonalnego (prawy górny róg bounding boxa) w multi-select skaluje wszystkie zaznaczone kształty proporcjonalnie, zachowując ich wzajemne pozycje.
 
 #### Panel właściwości (sidebar)
 
@@ -362,7 +363,7 @@ Tytuł: Widoczność uchwytów — wyłącznie przy zaznaczeniu i hoveru jednocz
 Opis: Jako użytkownik chcę widzieć uchwyty manipulacji tylko gdy jestem kursorem nad zaznaczonym kształtem, aby canvas był czysty gdy kursor jest gdzieś indziej.
 
 Kryteria akceptacji:
-- Uchwyty (4 boczne + 1 rotacji) są widoczne wyłącznie gdy kształt jest zaznaczony ORAZ kursor myszy znajduje się nad kształtem — oba warunki muszą być spełnione jednocześnie.
+- Uchwyty (4 boczne + uchwyt skalowania proporcjonalnego w prawym górnym rogu + uchwyt rotacji w lewym górnym rogu) są widoczne wyłącznie gdy kształt jest zaznaczony ORAZ kursor myszy znajduje się nad kształtem — oba warunki muszą być spełnione jednocześnie.
 - Gdy kursor opuszcza obszar zaznaczonego kształtu, uchwyty znikają (mimo że kształt nadal jest zaznaczony).
 - Najeżdżanie kursorem na niezaznaczony kształt nie powoduje pojawienia się uchwytów.
 - Na pustym obszarze canvasa (brak kształtu pod kursorem) żadne uchwyty nie są wyświetlane.
@@ -394,6 +395,21 @@ Kryteria akceptacji:
 - Gdy kursor opuści obszar kształtu, uchwyt rotacji znika — nawet gdy kształt jest zaznaczony.
 - Kąt obrotu wyświetlany jest w sidebarze (MVP Extended).
 - Rotacja działa dla wszystkich typów kształtów.
+
+---
+
+US-007b
+Tytuł: Skalowanie proporcjonalne kształtu przez uchwyt w prawym górnym rogu
+
+Opis: Jako użytkownik chcę skalować kształt lub grupę kształtów proporcjonalnie (zachowując aspect ratio) za pomocą uchwytu w prawym górnym rogu bounding boxa.
+
+Kryteria akceptacji:
+- Gdy kształt jest zaznaczony ORAZ kursor jest nad kształtem, w prawym górnym rogu jego bounding boxa pojawia się uchwyt skalowania proporcjonalnego.
+- Przeciąganie tego uchwytu skaluje kształt/grupę proporcjonalnie — aspect ratio (stosunek szerokości do wysokości) pozostaje niezmieniony niezależnie od kierunku przeciągania.
+- Uchwyt skalowania proporcjonalnego działa niezależnie od 4 uchwytów bocznych — te dwa mechanizmy nie kolidują ze sobą.
+- Gdy kursor opuści obszar kształtu, uchwyt skalowania proporcjonalnego znika — nawet gdy kształt jest zaznaczony.
+- Dla multi-selectu uchwyt skaluje cały wspólny bounding box proporcjonalnie.
+- Skalowanie działa spójnie dla wszystkich typów kształtów (Rect, Circle/Ellipse, RegularPolygon, Line).
 
 ---
 
@@ -536,11 +552,13 @@ Kryteria akceptacji:
 US-019
 Tytuł: Skalowanie proporcjonalne w multi-select
 
-Opis: Jako użytkownik chcę, aby przy resizowaniu grupy zaznaczonych kształtów z wciśniętym Shift skalowanie było proporcjonalne.
+Opis: Jako użytkownik chcę skalować grupę zaznaczonych kształtów proporcjonalnie za pomocą uchwytu skalowania proporcjonalnego w prawym górnym rogu wspólnego bounding boxa.
 
 Kryteria akceptacji:
-- Resize wspólnego bounding boxa przy wciśniętym `Shift` zachowuje proporcje wszystkich kształtów.
-- Relative pozycje kształtów względem siebie są zachowane podczas skalowania.
+- Uchwyt skalowania proporcjonalnego (prawy górny róg) dla multi-selectu działa na wspólny bounding box — skaluje wszystkie zaznaczone kształty jednocześnie.
+- Aspect ratio wspólnego bounding boxa jest zachowany podczas przeciągania.
+- Względne pozycje kształtów względem siebie są zachowane podczas skalowania.
+- Uchwyty boczne wspólnego bounding boxa nadal pozwalają na swobodne rozciąganie grupy bez zachowania proporcji.
 
 ---
 
