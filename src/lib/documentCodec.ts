@@ -6,6 +6,8 @@ import {
 } from './document'
 import type { CanvasDocument, DocumentLayer, DocumentMeta } from './document'
 import type { Shape, ShapeType, ShapeProperties } from '@/shapes'
+import type { Layer } from '@/store/slices/layers'
+import { DEFAULT_LAYER_ID, INITIAL_LAYER } from '@/store/slices/layers'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -13,13 +15,9 @@ import type { Shape, ShapeType, ShapeProperties } from '@/shapes'
 
 export interface EncodeInput {
   shapes: Shape[]
+  layers: Layer[]
   stickyDefaults: Partial<Record<ShapeType, Partial<ShapeProperties>>>
-  /** Displayed document name. Defaults to "Untitled". */
   name?: string
-  /**
-   * Pass back the original meta when re-saving an existing document so that
-   * `id` and `createdAt` are preserved while `updatedAt` is refreshed.
-   */
   existingMeta?: Pick<CanvasDocument['meta'], 'id' | 'createdAt' | 'name'>
 }
 
@@ -30,10 +28,21 @@ export interface EncodeInput {
 export function encodeDocument(input: EncodeInput): CanvasDocument {
   const now = new Date().toISOString()
 
-  const layer: DocumentLayer = {
-    id: 'layer_default',
-    ...DEFAULT_LAYER_META,
-    shapes: input.shapes,
+  // Group shapes by layerId, preserving layer order
+  const docLayers: DocumentLayer[] = input.layers.map((layer) => ({
+    id: layer.id,
+    name: layer.name,
+    visible: layer.visible,
+    locked: layer.locked,
+    opacity: layer.opacity,
+    shapes: input.shapes.filter((s) => (s.layerId ?? DEFAULT_LAYER_ID) === layer.id),
+  }))
+
+  // Safety: shapes with unknown layerId fall into the first layer
+  const knownLayerIds = new Set(input.layers.map((l) => l.id))
+  const orphans = input.shapes.filter((s) => s.layerId && !knownLayerIds.has(s.layerId))
+  if (orphans.length > 0 && docLayers.length > 0) {
+    docLayers[0].shapes.push(...orphans)
   }
 
   return {
@@ -45,7 +54,7 @@ export function encodeDocument(input: EncodeInput): CanvasDocument {
       updatedAt: now,
     },
     canvas: DEFAULT_CANVAS_SETTINGS,
-    layers: [layer],
+    layers: docLayers,
     stickyDefaults: input.stickyDefaults,
   }
 }
@@ -56,14 +65,36 @@ export function encodeDocument(input: EncodeInput): CanvasDocument {
 
 export interface DecodeResult {
   shapes: Shape[]
+  layers: Layer[]
+  activeLayerId: string
   stickyDefaults: Partial<Record<ShapeType, Partial<ShapeProperties>>>
   meta: CanvasDocument['meta']
 }
 
 export function decodeDocument(doc: CanvasDocument): DecodeResult {
-  const shapes = doc.layers.flatMap((l) => l.shapes)
+  // Build layer metadata list (no shapes inline)
+  const layers: Layer[] = doc.layers.map((dl) => ({
+    id: dl.id,
+    name: dl.name,
+    visible: dl.visible,
+    locked: dl.locked,
+    opacity: dl.opacity,
+  }))
+
+  // Flatten shapes, injecting layerId from their parent document layer
+  const shapes: Shape[] = doc.layers.flatMap((dl) =>
+    dl.shapes.map((s) => ({ ...s, layerId: dl.id }))
+  )
+
+  // Ensure at least one layer exists
+  if (layers.length === 0) {
+    layers.push({ ...INITIAL_LAYER })
+  }
+
   return {
     shapes,
+    layers,
+    activeLayerId: layers[layers.length - 1].id,
     stickyDefaults: doc.stickyDefaults ?? {},
     meta: doc.meta,
   }
@@ -89,11 +120,11 @@ function buildDefaultMeta(): DocumentMeta {
 }
 
 /**
- * Parse a JSON string and return a `CanvasDocument`.
+ * Parse a JSON string and return a CanvasDocument.
  * Accepts three formats:
  *   1. Full CanvasDocument (meta + canvas + layers)
  *   2. Object with just `layers` — meta and canvas filled with defaults
- *   3. Bare array — treated as the layers array directly
+ *   3. Bare array — treated as a single default layer's shapes
  */
 export function parseDocument(json: string): CanvasDocument {
   let raw: unknown
@@ -103,18 +134,18 @@ export function parseDocument(json: string): CanvasDocument {
     throw new Error('Invalid document: not valid JSON.')
   }
 
-  // Format 3: bare layers array
+  // Format 3: bare shapes array
   if (Array.isArray(raw)) {
     return {
       meta: buildDefaultMeta(),
       canvas: DEFAULT_CANVAS_SETTINGS,
-      layers: raw as DocumentLayer[],
+      layers: [{ id: DEFAULT_LAYER_ID, ...DEFAULT_LAYER_META, shapes: raw as Shape[] }],
       stickyDefaults: {},
     }
   }
 
   if (!raw || typeof raw !== 'object') {
-    throw new Error('Invalid document: root must be a JSON object or a layers array.')
+    throw new Error('Invalid document: root must be a JSON object or a shapes array.')
   }
 
   const doc = raw as Record<string, unknown>
@@ -123,7 +154,6 @@ export function parseDocument(json: string): CanvasDocument {
     throw new Error('Invalid document: "layers" must be an array.')
   }
 
-  // Format 1 & 2: fill meta/canvas with defaults if absent
   return {
     meta: (doc.meta as DocumentMeta) ?? buildDefaultMeta(),
     canvas: (doc.canvas as CanvasDocument['canvas']) ?? DEFAULT_CANVAS_SETTINGS,

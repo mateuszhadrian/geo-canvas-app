@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { Sketch } from '@uiw/react-color'
 import type { ColorResult } from '@uiw/react-color'
 import { useCanvasStore } from '@/store/use-canvas-store'
+import { SHAPE_REGISTRY } from '@/shapes/registry'
 import type { Shape } from '@/shapes'
 import type { ShapeUpdate } from '@/store/types'
 
@@ -14,21 +15,11 @@ function hasFill(shape: Shape): shape is Extract<Shape, { fill: string }> {
 // ── ColorRow ──────────────────────────────────────────────────────────────────
 
 function ColorRow({
-  label,
-  color,
-  open,
-  onToggle,
-  onBeforeChange,
-  onChange,
-  onAfterChange,
+  label, color, open, onToggle, onBeforeChange, onChange, onAfterChange,
 }: {
-  label: string
-  color: string
-  open: boolean
-  onToggle: () => void
-  onBeforeChange: () => void
-  onChange: (c: ColorResult) => void
-  onAfterChange: () => void
+  label: string; color: string; open: boolean
+  onToggle: () => void; onBeforeChange: () => void
+  onChange: (c: ColorResult) => void; onAfterChange: () => void
 }) {
   return (
     <section>
@@ -36,19 +27,12 @@ function ColorRow({
         onClick={onToggle}
         className="flex w-full items-center gap-2 rounded px-1 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
       >
-        <span
-          className="h-4 w-4 shrink-0 rounded border border-gray-200"
-          style={{ backgroundColor: color }}
-        />
+        <span className="h-4 w-4 shrink-0 rounded border border-gray-200" style={{ backgroundColor: color }} />
         <span>{label}</span>
         <span className="ml-auto font-mono text-gray-400">{color.toUpperCase()}</span>
       </button>
       {open && (
-        <div
-          className="mt-2 flex justify-center"
-          onPointerDown={onBeforeChange}
-          onPointerUp={onAfterChange}
-        >
+        <div className="mt-2 flex justify-center" onPointerDown={onBeforeChange} onPointerUp={onAfterChange}>
           <Sketch
             color={color}
             disableAlpha
@@ -71,8 +55,6 @@ export function PropertiesSidebar() {
 
   const [fillOpen, setFillOpen] = useState(false)
   const [strokeOpen, setStrokeOpen] = useState(false)
-
-  // "before" refs: capture original value at the start of each interaction
   const beforeRef = useRef<ShapeUpdate | null>(null)
 
   if (selectedShapeIds.length !== 1) return null
@@ -87,26 +69,28 @@ export function PropertiesSidebar() {
     if (beforeRef.current === null) return
     const current = useCanvasStore.getState().shapes.find((s) => s.id === shape.id)
     if (!current) { beforeRef.current = null; return }
-    const currentVal = (current as unknown as Record<string, unknown>)[field]
+    const currentVal = (current as unknown as Record<string, unknown>)[field as string]
     const after: ShapeUpdate = { [field]: currentVal }
-    if ((beforeRef.current as Record<string, unknown>)[field] !== currentVal) {
+    if ((beforeRef.current as Record<string, unknown>)[field as string] !== currentVal) {
       commitShapeUpdate(shape.id, beforeRef.current, after)
     }
     beforeRef.current = null
   }
 
+  const { PropertiesPanel } = SHAPE_REGISTRY[shape.type]
+
   return (
-    <div
-      className="absolute right-0 top-0 z-10 flex h-full w-64 flex-col gap-4 overflow-y-auto border-l px-4 py-4"
-      style={{
-        backgroundColor: 'var(--color-sidebar-bg)',
-        borderColor: 'var(--color-toolbar-border)',
-      }}
-    >
+    <div className="flex flex-col gap-4 px-4 py-4">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
         {shape.type}
       </p>
 
+      {/* Shape-specific numeric properties */}
+      <PropertiesPanel shape={shape as never} />
+
+      <div className="border-t" style={{ borderColor: 'var(--color-toolbar-border)' }} />
+
+      {/* Opacity */}
       <section>
         <label className="mb-1.5 flex items-center justify-between text-xs font-medium text-gray-600">
           <span>Opacity</span>
@@ -118,45 +102,34 @@ export function PropertiesSidebar() {
           max={100}
           value={opacityPct}
           onPointerDown={() => { beforeRef.current = { opacity: shape.opacity } }}
-          onChange={(e) =>
-            updateShapeTransient(shape.id, { opacity: Number(e.target.value) / 100 })
-          }
+          onChange={(e) => updateShapeTransient(shape.id, { opacity: Number(e.target.value) / 100 })}
           onPointerUp={() => commit('opacity')}
           className="w-full accent-blue-500"
         />
       </section>
 
+      {/* Fill */}
       {withFill && (
         <ColorRow
           label="Fill"
-          color={shape.fill}
+          color={(shape as Extract<Shape, { fill: string }>).fill}
           open={fillOpen}
-          onToggle={() => {
-            setFillOpen((v) => !v)
-            if (strokeOpen) setStrokeOpen(false)
-          }}
+          onToggle={() => { setFillOpen((v) => !v); if (strokeOpen) setStrokeOpen(false) }}
           onBeforeChange={() => {
-            if (beforeRef.current === null) {
-              const s = shape as Extract<Shape, { fill: string }>
-              beforeRef.current = { fill: s.fill }
-            }
+            if (beforeRef.current === null) beforeRef.current = { fill: (shape as Extract<Shape, { fill: string }>).fill }
           }}
           onChange={(c) => updateShapeTransient(shape.id, { fill: c.hex })}
           onAfterChange={() => commit('fill')}
         />
       )}
 
+      {/* Stroke */}
       <ColorRow
         label="Stroke"
         color={shape.stroke}
         open={strokeOpen}
-        onToggle={() => {
-          setStrokeOpen((v) => !v)
-          if (fillOpen) setFillOpen(false)
-        }}
-        onBeforeChange={() => {
-          if (beforeRef.current === null) beforeRef.current = { stroke: shape.stroke }
-        }}
+        onToggle={() => { setStrokeOpen((v) => !v); if (fillOpen) setFillOpen(false) }}
+        onBeforeChange={() => { if (beforeRef.current === null) beforeRef.current = { stroke: shape.stroke } }}
         onChange={(c) => updateShapeTransient(shape.id, { stroke: c.hex })}
         onAfterChange={() => commit('stroke')}
       />

@@ -7,8 +7,17 @@ import { SHAPE_REGISTRY } from '@/shapes/registry'
 import { useCanvasStore } from '@/store/use-canvas-store'
 import type { Shape } from '@/shapes'
 import { ShapeHandles } from './ShapeHandles'
+import { AnchorPoints } from './AnchorPoints'
 
-export function ShapeNode({ shape, disableListening = false }: { shape: Shape; disableListening?: boolean }) {
+export function ShapeNode({
+  shape,
+  disableListening = false,
+  layerLocked = false,
+}: {
+  shape: Shape
+  disableListening?: boolean
+  layerLocked?: boolean
+}) {
   const { Renderer } = SHAPE_REGISTRY[shape.type]
   const activeTool = useCanvasStore((s) => s.activeTool)
   const updateShape = useCanvasStore((s) => s.updateShape)
@@ -21,14 +30,21 @@ export function ShapeNode({ shape, disableListening = false }: { shape: Shape; d
   const isOnlySelected = isSelected && selectedShapeIds.length === 1
   const [isHovered, setIsHovered] = useState(false)
   const [handleDragActive, setHandleDragActive] = useState(false)
-  // Ref lets onDragStart check synchronously (before React re-render)
   const handleDragActiveRef = useRef(false)
   const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map())
+
+  const notListening = disableListening || layerLocked
 
   const onHandleDragActiveChange = (active: boolean) => {
     handleDragActiveRef.current = active
     setHandleDragActive(active)
   }
+
+  // Show anchors when hovered in select mode (preview of connector system)
+  const def = SHAPE_REGISTRY[shape.type]
+  const anchorPoints = isHovered && activeTool === 'select' && def.anchors
+    ? def.anchors(shape)
+    : []
 
   return (
     <Group
@@ -37,8 +53,8 @@ export function ShapeNode({ shape, disableListening = false }: { shape: Shape; d
       y={shape.y}
       rotation={shape.rotation}
       opacity={shape.opacity}
-      draggable={activeTool === 'select' && !disableListening}
-      listening={!disableListening}
+      draggable={activeTool === 'select' && !notListening}
+      listening={!notListening}
       onClick={(e) => {
         if (e.evt.metaKey || e.evt.ctrlKey) toggleShapeSelection(shape.id)
         else setSelectedShapeIds([shape.id])
@@ -46,16 +62,10 @@ export function ShapeNode({ shape, disableListening = false }: { shape: Shape; d
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onDragStart={(e) => {
-        // If a handle drag is active, abort the group drag immediately
-        if (handleDragActiveRef.current) {
-          e.target.stopDrag()
-          return
-        }
+        if (handleDragActiveRef.current) { e.target.stopDrag(); return }
         const { shapes: allShapes, selectedShapeIds: ids } = useCanvasStore.getState()
         const map = new Map<string, { x: number; y: number }>()
-        allShapes.forEach((s) => {
-          if (ids.includes(s.id)) map.set(s.id, { x: s.x, y: s.y })
-        })
+        allShapes.forEach((s) => { if (ids.includes(s.id)) map.set(s.id, { x: s.x, y: s.y }) })
         dragStartPositions.current = map
       }}
       onDragMove={(e: KonvaEventObject<DragEvent>) => {
@@ -85,9 +95,7 @@ export function ShapeNode({ shape, disableListening = false }: { shape: Shape; d
           const items = ids.flatMap((id) => {
             const s = dragStartPositions.current.get(id)
             if (!s) return []
-            const before = { x: s.x, y: s.y }
-            const after = { x: s.x + delta.x, y: s.y + delta.y }
-            return [{ id, before, after }]
+            return [{ id, before: { x: s.x, y: s.y }, after: { x: s.x + delta.x, y: s.y + delta.y } }]
           })
           if (items.length > 0) moveShapes(items)
         } else {
@@ -97,6 +105,12 @@ export function ShapeNode({ shape, disableListening = false }: { shape: Shape; d
       }}
     >
       <Renderer shape={shape} isSelected={isSelected} />
+
+      {/* Anchor points — shown on hover as preview of connector system */}
+      {anchorPoints.length > 0 && !isSelected && (
+        <AnchorPoints anchors={anchorPoints} />
+      )}
+
       {isOnlySelected && activeTool === 'select' && (
         <ShapeHandles
           shape={shape}

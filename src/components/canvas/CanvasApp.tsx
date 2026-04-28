@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Stage, Layer } from 'react-konva'
+import { Stage, Layer as KonvaLayer } from 'react-konva'
 import { useCanvasStore } from '@/store/use-canvas-store'
 import { ShapeNode } from './ShapeNode'
 import { GridBackground } from './GridBackground'
@@ -17,6 +17,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/canvasConstants'
 import type { Point } from '@/shapes'
 import { useMultilineDrawing } from '@/shapes/line/useMultilineDrawing'
 import { PropertiesSidebar } from '@/components/sidebar/PropertiesSidebar'
+import { LayersSidebar } from '@/components/sidebar/LayersSidebar'
 
 const ZOOM_STEP = 0.05
 const MAX_SCALE = 2
@@ -38,6 +39,8 @@ function clampPosition(pos: Point, scale: number): Point {
 
 export default function CanvasApp() {
   const shapes = useCanvasStore((state) => state.shapes)
+  const layers = useCanvasStore((state) => state.layers)
+  const activeLayerId = useCanvasStore((state) => state.activeLayerId)
   const activeTool = useCanvasStore((state) => state.activeTool)
   const canvasPosition = useCanvasStore((state) => state.canvasPosition)
   const canvasScale = useCanvasStore((state) => state.canvasScale)
@@ -51,13 +54,9 @@ export default function CanvasApp() {
   const { multilineFirstLineId, tryExtendOrClose } = useMultilineDrawing()
   const [isPanning, setIsPanning] = useState(false)
   const [marqueeRect, setMarqueeRect] = useState<BoundingBox | null>(null)
-  // Refs avoid stale closures in Konva event handlers across React renders
   const marqueeStartRef = useRef<Point | null>(null)
   const marqueeRectRef = useRef<BoundingBox | null>(null)
-  // Konva fires 'click' immediately after 'mouseup' on empty canvas even after a drag;
-  // this flag tells onClick to skip deselection when a marquee selection just happened.
   const didMarqueeSelectRef = useRef(false)
-  // Same pattern: skip the canvas click that fires right after a handle drag ends.
   const didHandleDragRef = useRef(false)
 
   const scaleRef = useRef(canvasScale)
@@ -70,32 +69,22 @@ export default function CanvasApp() {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault()
-
       if (e.metaKey || e.ctrlKey) {
         const oldScale = scaleRef.current
         const direction = e.deltaY < 0 ? 1 : -1
         const newScale = Math.min(MAX_SCALE, Math.max(getMinScale(), oldScale * (1 + direction * ZOOM_STEP)))
         if (newScale === oldScale) return
-
         const ratio = newScale / oldScale
         const pos = positionRef.current
         setCanvasScale(newScale)
-        setCanvasPosition(clampPosition({
-          x: e.clientX - (e.clientX - pos.x) * ratio,
-          y: e.clientY - (e.clientY - pos.y) * ratio,
-        }, newScale))
+        setCanvasPosition(clampPosition({ x: e.clientX - (e.clientX - pos.x) * ratio, y: e.clientY - (e.clientY - pos.y) * ratio }, newScale))
       } else {
         const pos = positionRef.current
-        setCanvasPosition(clampPosition({
-          x: pos.x - e.deltaX,
-          y: pos.y - e.deltaY,
-        }, scaleRef.current))
+        setCanvasPosition(clampPosition({ x: pos.x - e.deltaX, y: pos.y - e.deltaY }, scaleRef.current))
       }
     }
-
     el.addEventListener('wheel', handleWheel, { passive: false })
     return () => el.removeEventListener('wheel', handleWheel)
   }, [setCanvasPosition, setCanvasScale])
@@ -117,23 +106,9 @@ export default function CanvasApp() {
       if (!target) return
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
 
-      if (e.key === 'Escape') {
-        setSelectedShapeIds([])
-        return
-      }
-
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault()
-        undo()
-        return
-      }
-
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault()
-        redo()
-        return
-      }
-
+      if (e.key === 'Escape') { setSelectedShapeIds([]); return }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         const { selectedShapeIds: ids } = useCanvasStore.getState()
         if (ids.length > 0) removeShapes(ids)
@@ -143,23 +118,27 @@ export default function CanvasApp() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [setSelectedShapeIds, removeShapes, undo, redo])
 
-  // Clear marquee if mouse is released outside the Stage
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
+    const handleGlobalPointerUp = () => {
       if (marqueeStartRef.current || marqueeRectRef.current) {
         marqueeStartRef.current = null
         marqueeRectRef.current = null
         setMarqueeRect(null)
       }
     }
-    document.addEventListener('mouseup', handleGlobalMouseUp)
-    return () => document.removeEventListener('mouseup', handleGlobalMouseUp)
+    document.addEventListener('pointerup', handleGlobalPointerUp)
+    return () => document.removeEventListener('pointerup', handleGlobalPointerUp)
   }, [])
 
   const cursor =
     activeTool === 'hand'
       ? isPanning ? 'grabbing' : 'grab'
       : marqueeRect ? 'crosshair' : 'default'
+
+  // Marquee selection is limited to the active layer (if it's visible and unlocked)
+  const activeLayerSelectable = layers.some(
+    (l) => l.id === activeLayerId && l.visible && !l.locked
+  )
 
   return (
     <div
@@ -179,15 +158,8 @@ export default function CanvasApp() {
         dragBoundFunc={(pos) => clampPosition(pos, scaleRef.current)}
         onClick={(e) => {
           if (e.target !== e.currentTarget) return
-          if (didMarqueeSelectRef.current) {
-            didMarqueeSelectRef.current = false
-            return
-          }
-          if (didHandleDragRef.current) {
-            didHandleDragRef.current = false
-            return
-          }
-
+          if (didMarqueeSelectRef.current) { didMarqueeSelectRef.current = false; return }
+          if (didHandleDragRef.current) { didHandleDragRef.current = false; return }
           const stage = e.target.getStage()
           const raw = stage?.getPointerPosition()
           if (raw) {
@@ -195,24 +167,22 @@ export default function CanvasApp() {
             const clickY = (raw.y - positionRef.current.y) / scaleRef.current
             if (tryExtendOrClose(clickX, clickY)) return
           }
-
           setSelectedShapeIds([])
         }}
-        onMouseDown={(e) => {
+        onPointerDown={(e) => {
           if (activeTool !== 'select') return
           if (e.target !== e.currentTarget) return
           const stage = e.target.getStage()
           if (!stage) return
           const raw = stage.getPointerPosition()
           if (!raw) return
-          const pos = {
+          marqueeStartRef.current = {
             x: (raw.x - positionRef.current.x) / scaleRef.current,
             y: (raw.y - positionRef.current.y) / scaleRef.current,
           }
-          marqueeStartRef.current = pos
           marqueeRectRef.current = null
         }}
-        onMouseMove={(e) => {
+        onPointerMove={(e) => {
           if (!marqueeStartRef.current) return
           const stage = e.target.getStage()
           if (!stage) return
@@ -228,7 +198,7 @@ export default function CanvasApp() {
           marqueeRectRef.current = newRect
           setMarqueeRect(newRect)
         }}
-        onMouseUp={() => {
+        onPointerUp={() => {
           if (!marqueeStartRef.current) return
           const rect = marqueeRectRef.current
           if (rect) {
@@ -239,6 +209,8 @@ export default function CanvasApp() {
               y2: Math.max(rect.y1, rect.y2),
             }
             const selected = shapes.filter((shape) =>
+              activeLayerSelectable &&
+              (shape.layerId ?? activeLayerId) === activeLayerId &&
               intersectsBoundingBox(getShapeBoundingBox(shape), normalized)
             )
             setSelectedShapeIds(selected.map((s) => s.id))
@@ -260,14 +232,30 @@ export default function CanvasApp() {
         className="m-auto"
       >
         <GridBackground />
-        <Layer>
-          {shapes.map((shape) => (
-            <ShapeNode
-              key={shape.id}
-              shape={shape}
-              disableListening={shape.id === multilineFirstLineId}
-            />
-          ))}
+
+        {/* One Konva Layer per canvas layer, in z-order (index 0 = bottom) */}
+        {layers.map((layer) => (
+          <KonvaLayer
+            key={layer.id}
+            visible={layer.visible}
+            opacity={layer.opacity}
+          >
+            {shapes
+              .filter((s) => (s.layerId ?? activeLayerId) === layer.id)
+              .map((shape) => (
+                <ShapeNode
+                  key={shape.id}
+                  shape={shape}
+                  disableListening={shape.id === multilineFirstLineId}
+                  layerLocked={layer.locked}
+                />
+              ))
+            }
+          </KonvaLayer>
+        ))}
+
+        {/* UI controls layer — always on top */}
+        <KonvaLayer>
           {activeTool === 'select' && <MultiLineHandles onDragEnd={() => { didHandleDragRef.current = true }} />}
           {activeTool === 'select' && <MultiShapeHandles onDragEnd={() => { didHandleDragRef.current = true }} />}
           {marqueeRect && (
@@ -278,11 +266,25 @@ export default function CanvasApp() {
               y2={marqueeRect.y2}
             />
           )}
-        </Layer>
+        </KonvaLayer>
       </Stage>
+
       <PictureDataDisplay />
       <JsonImportInput />
-      <PropertiesSidebar />
+
+      {/* Right sidebar: properties (contextual) + layers (always) */}
+      <div
+        className="absolute right-0 top-0 z-10 flex h-full w-64 flex-col border-l"
+        style={{
+          backgroundColor: 'var(--color-sidebar-bg)',
+          borderColor: 'var(--color-toolbar-border)',
+        }}
+      >
+        <div className="flex-1 overflow-y-auto">
+          <PropertiesSidebar />
+        </div>
+        <LayersSidebar />
+      </div>
     </div>
   )
 }

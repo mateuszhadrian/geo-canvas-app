@@ -29,8 +29,7 @@ interface Bbox extends BoundingBox { cx: number; cy: number }
 function combinedBbox(lines: LineShape[]): Bbox | null {
   const pts = lines.flatMap(lineWorldPoints)
   if (pts.length === 0) return null
-  const xs = pts.map((p) => p.x)
-  const ys = pts.map((p) => p.y)
+  const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y)
   const x1 = Math.min(...xs) - PAD, x2 = Math.max(...xs) + PAD
   const y1 = Math.min(...ys) - PAD, y2 = Math.max(...ys) + PAD
   return { x1, y1, x2, y2, cx: (x1 + x2) / 2, cy: (y1 + y2) / 2 }
@@ -44,20 +43,18 @@ interface DragState {
   kind: 'scale' | 'rotate'
   startPtr: Point
   cx: number; cy: number
-  hdx: number; hdy: number  // direction from center to scale handle at drag start
+  hdx: number; hdy: number
   hdLen: number
   lines: StartLine[]
 }
 
-function screenToWorld(e: MouseEvent, pos: Point, scale: number): Point {
+function screenToWorld(e: PointerEvent, pos: Point, scale: number): Point {
   return { x: (e.clientX - pos.x) / scale, y: (e.clientY - pos.y) / scale }
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface Props {
-  onDragEnd: () => void
-}
+interface Props { onDragEnd: () => void }
 
 export function MultiLineHandles({ onDragEnd }: Props) {
   const shapes = useCanvasStore((s) => s.shapes)
@@ -68,7 +65,6 @@ export function MultiLineHandles({ onDragEnd }: Props) {
   const selectedLines = shapes.filter(
     (s): s is LineShape => s.type === 'line' && selectedShapeIds.includes(s.id),
   )
-  // Defer to MultiShapeHandles when 2+ shapes are selected
   if (selectedLines.length === 0 || selectedShapeIds.length >= 2) return null
 
   const bbox = combinedBbox(selectedLines)
@@ -76,26 +72,23 @@ export function MultiLineHandles({ onDragEnd }: Props) {
 
   const { x1, y1, x2, y2, cx, cy } = bbox
 
-  const handleMouseDown = (e: KonvaEventObject<MouseEvent>, kind: 'scale' | 'rotate') => {
+  const handlePointerDown = (e: KonvaEventObject<PointerEvent>, kind: 'scale' | 'rotate') => {
     e.cancelBubble = true
     const { canvasScale, canvasPosition } = useCanvasStore.getState()
     const startPtr = screenToWorld(e.evt, canvasPosition, canvasScale)
-    // Direction from center to scale handle (top-right corner)
     const hdx = x2 - cx, hdy = y1 - cy
     const hdLen = Math.sqrt(hdx * hdx + hdy * hdy)
 
     dragRef.current = {
       kind, startPtr, cx, cy, hdx, hdy, hdLen,
-      lines: selectedLines.map((l) => ({
-        id: l.id, x: l.x, y: l.y, rotation: l.rotation, points: l.points.slice(),
-      })),
+      lines: selectedLines.map((l) => ({ id: l.id, x: l.x, y: l.y, rotation: l.rotation, points: l.points.slice() })),
     }
 
-    const onMove = (me: MouseEvent) => {
+    const onMove = (pe: PointerEvent) => {
       const d = dragRef.current
       if (!d) return
       const { canvasScale: cs, canvasPosition: cp } = useCanvasStore.getState()
-      const curr = screenToWorld(me, cp, cs)
+      const curr = screenToWorld(pe, cp, cs)
 
       if (d.kind === 'rotate') {
         const a0 = Math.atan2(d.startPtr.y - d.cy, d.startPtr.x - d.cx)
@@ -129,11 +122,12 @@ export function MultiLineHandles({ onDragEnd }: Props) {
     const onUp = () => {
       dragRef.current = null
       onDragEnd()
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
   }
 
   return (
@@ -155,7 +149,7 @@ export function MultiLineHandles({ onDragEnd }: Props) {
         fill='#3b82f6'
         stroke='#1d4ed8'
         strokeWidth={1.5}
-        onMouseDown={(e) => handleMouseDown(e, 'scale')}
+        onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'scale')}
         onClick={(e) => { e.cancelBubble = true }}
       />
       {/* Rotate — top-left, amber circle */}
@@ -165,7 +159,7 @@ export function MultiLineHandles({ onDragEnd }: Props) {
         fill='#f59e0b'
         stroke='#d97706'
         strokeWidth={1.5}
-        onMouseDown={(e) => handleMouseDown(e, 'rotate')}
+        onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'rotate')}
         onClick={(e) => { e.cancelBubble = true }}
       />
     </>

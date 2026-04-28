@@ -4,13 +4,13 @@ import { useRef } from 'react'
 import { Circle as KonvaCircle, Rect as KonvaRect } from 'react-konva'
 import type { KonvaEventObject } from 'konva/lib/Node'
 import { useCanvasStore } from '@/store/use-canvas-store'
+import { SHAPE_REGISTRY } from '@/shapes/registry'
 import type { Shape, Point } from '@/shapes'
 import type { TriangleVertices } from '@/shapes/triangle/types'
 import type { ShapeUpdate, ShapeUpdatePair } from '@/store/types'
 import type { BoundingBox } from '@/lib/shapeBounds'
-import { captureGeometry } from '@/lib/captureGeometry'
 
-// ── Per-shape geometry snapshot (discriminated union) ─────────────────────────
+// ── Per-shape geometry snapshot ───────────────────────────────────────────────
 
 type MultiStartShape =
   | { id: string; type: 'rect';     x: number; y: number; rotation: number; width: number; height: number }
@@ -34,37 +34,7 @@ const PAD = HR + 4
 // ── World-space bbox (accounts for rotation) ──────────────────────────────────
 
 function getShapeWorldPoints(shape: Shape): Point[] {
-  const θ = shape.rotation * (Math.PI / 180)
-  const cosθ = Math.cos(θ), sinθ = Math.sin(θ)
-  const w = (lx: number, ly: number): Point => ({
-    x: shape.x + lx * cosθ - ly * sinθ,
-    y: shape.y + lx * sinθ + ly * cosθ,
-  })
-
-  if (shape.type === 'rect') {
-    const hw = shape.width / 2, hh = shape.height / 2
-    return [w(-hw, -hh), w(hw, -hh), w(hw, hh), w(-hw, hh)]
-  }
-  if (shape.type === 'circle') {
-    const R = shape.radius
-    return [{ x: shape.x - R, y: shape.y - R }, { x: shape.x + R, y: shape.y + R }]
-  }
-  if (shape.type === 'ellipse') {
-    const xExt = Math.sqrt((shape.radiusX * cosθ) ** 2 + (shape.radiusY * sinθ) ** 2)
-    const yExt = Math.sqrt((shape.radiusX * sinθ) ** 2 + (shape.radiusY * cosθ) ** 2)
-    return [
-      { x: shape.x - xExt, y: shape.y - yExt },
-      { x: shape.x + xExt, y: shape.y + yExt },
-    ]
-  }
-  if (shape.type === 'triangle') {
-    const v = shape.vertices
-    return [w(v[0], v[1]), w(v[2], v[3]), w(v[4], v[5])]
-  }
-  // line
-  const out: Point[] = []
-  for (let i = 0; i + 1 < shape.points.length; i += 2) out.push(w(shape.points[i], shape.points[i + 1]))
-  return out
+  return SHAPE_REGISTRY[shape.type].getWorldPoints(shape)
 }
 
 interface GroupBbox extends BoundingBox { cx: number; cy: number }
@@ -89,15 +59,13 @@ interface DragState {
   shapes: MultiStartShape[]
 }
 
-function screenToWorld(e: MouseEvent, pos: Point, scale: number): Point {
+function screenToWorld(e: PointerEvent, pos: Point, scale: number): Point {
   return { x: (e.clientX - pos.x) / scale, y: (e.clientY - pos.y) / scale }
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface Props {
-  onDragEnd: () => void
-}
+interface Props { onDragEnd: () => void }
 
 export function MultiShapeHandles({ onDragEnd }: Props) {
   const shapes = useCanvasStore((s) => s.shapes)
@@ -115,24 +83,23 @@ export function MultiShapeHandles({ onDragEnd }: Props) {
 
   const { x1, y1, x2, y2, cx, cy } = bbox
 
-  const handleMouseDown = (e: KonvaEventObject<MouseEvent>, kind: 'scale' | 'rotate') => {
+  const handlePointerDown = (e: KonvaEventObject<PointerEvent>, kind: 'scale' | 'rotate') => {
     e.cancelBubble = true
     const { canvasScale, canvasPosition } = useCanvasStore.getState()
     const startPtr = screenToWorld(e.evt, canvasPosition, canvasScale)
     const hdx = x2 - cx, hdy = y1 - cy
     const hdLen = Math.sqrt(hdx * hdx + hdy * hdy)
 
-    dragRef.current = {
-      kind, startPtr, cx, cy, hdx, hdy, hdLen,
-      shapes: selectedShapes.map(captureMultiStart),
-    }
-    beforeMapRef.current = new Map(selectedShapes.map((s) => [s.id, captureGeometry(s)]))
+    dragRef.current = { kind, startPtr, cx, cy, hdx, hdy, hdLen, shapes: selectedShapes.map(captureMultiStart) }
+    beforeMapRef.current = new Map(
+      selectedShapes.map((s) => [s.id, SHAPE_REGISTRY[s.type].captureGeometry(s) as ShapeUpdate])
+    )
 
-    const onMove = (me: MouseEvent) => {
+    const onMove = (pe: PointerEvent) => {
       const d = dragRef.current
       if (!d) return
       const { canvasScale: cs, canvasPosition: cp } = useCanvasStore.getState()
-      const curr = screenToWorld(me, cp, cs)
+      const curr = screenToWorld(pe, cp, cs)
 
       if (d.kind === 'rotate') {
         const a0 = Math.atan2(d.startPtr.y - d.cy, d.startPtr.x - d.cx)
@@ -184,7 +151,7 @@ export function MultiShapeHandles({ onDragEnd }: Props) {
         const updates: ShapeUpdatePair[] = d.shapes.map((l) => {
           const before = beforeMapRef.current.get(l.id) ?? { x: l.x, y: l.y, rotation: l.rotation }
           const current = currentShapes.find((s) => s.id === l.id)
-          const after = current ? captureGeometry(current) : before
+          const after = current ? SHAPE_REGISTRY[current.type].captureGeometry(current) as ShapeUpdate : before
           return { id: l.id, before, after }
         })
         commitShapesUpdate(updates)
@@ -192,11 +159,12 @@ export function MultiShapeHandles({ onDragEnd }: Props) {
       dragRef.current = null
       beforeMapRef.current.clear()
       onDragEnd()
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
   }
 
   return (
@@ -218,7 +186,7 @@ export function MultiShapeHandles({ onDragEnd }: Props) {
         fill='#3b82f6'
         stroke='#1d4ed8'
         strokeWidth={1.5}
-        onMouseDown={(e) => handleMouseDown(e, 'scale')}
+        onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'scale')}
         onClick={(e) => { e.cancelBubble = true }}
       />
       {/* Rotate — top-left corner, amber circle */}
@@ -228,7 +196,7 @@ export function MultiShapeHandles({ onDragEnd }: Props) {
         fill='#f59e0b'
         stroke='#d97706'
         strokeWidth={1.5}
-        onMouseDown={(e) => handleMouseDown(e, 'rotate')}
+        onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'rotate')}
         onClick={(e) => { e.cancelBubble = true }}
       />
     </>
