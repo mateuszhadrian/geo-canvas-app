@@ -5,23 +5,21 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   ci:
-    name: Lint, Typecheck & Unit Tests
+    name: Format, Lint, Typecheck, Unit Tests & Build
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+      - name: Node setup
+        uses: ./.github/actions/node-setup
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Format check
+        run: npm run format:check
 
       - name: Lint
         run: npm run lint
@@ -39,3 +37,6 @@ jobs:
           name: coverage
           path: coverage/
           retention-days: 7
+
+      - name: Production build
+        run: npm run build
