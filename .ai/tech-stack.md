@@ -60,6 +60,11 @@ Szczegółowa analiza: `.ai/undo-redo-mechanism-analysis.md`
 }
 ```
 
+## CI/CD i Hosting
+
+- **CI/CD**: GitHub Actions — pipeline obejmuje lint, typecheck, testy jednostkowe (Jest) oraz testy e2e (Playwright).
+- **Hosting**: Vercel — deployments automatycznie wyzwalane przez push do `main` (produkcja) i PR (preview).
+
 ## Uwagi końcowe
 
 - `react-colorful` zostaje zastąpiony przez `@uiw/react-color` ze względu na lepsze utrzymanie i kompatybilność z React 19.
