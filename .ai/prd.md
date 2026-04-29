@@ -88,9 +88,9 @@ src/store/
 
 ```typescript
 interface CanvasDocument {
-  meta: { schemaVersion, id, name, createdAt, updatedAt }
-  canvas: { width, height }
-  layers: DocumentLayer[]          // każda warstwa ma id, name, visible, locked, opacity, shapes[]
+  meta: { schemaVersion; id; name; createdAt; updatedAt }
+  canvas: { width; height }
+  layers: DocumentLayer[] // każda warstwa ma id, name, visible, locked, opacity, shapes[]
   stickyDefaults: Record<ShapeType, Partial<ShapeProperties>>
 }
 ```
@@ -363,6 +363,7 @@ Tytuł: Tworzenie prostokąta
 Opis: Jako użytkownik chcę kliknąć narzędzie "Prostokąt" w toolbarze, aby natychmiast pojawił się nowy prostokąt na canvasie gotowy do edycji.
 
 Kryteria akceptacji:
+
 - Po kliknięciu ikony prostokąta na canvasie pojawia się nowy prostokąt w centrum aktualnie widocznego obszaru canvasa.
 - Prostokąt ma domyślne właściwości: fill `#4A90D9`, stroke `#2C5F8A`, strokeWidth `2`, opacity `1`.
 - Prostokąt jest natychmiast zaznaczony; uchwyty są widoczne gdy kursor znajduje się nad kształtem.
@@ -377,6 +378,7 @@ Tytuł: Tworzenie koła
 Opis: Jako użytkownik chcę kliknąć narzędzie "Koło" w toolbarze, aby pojawił się nowy kształt na canvasie.
 
 Kryteria akceptacji:
+
 - Po kliknięciu ikony koła nowy kształt pojawia się w centrum widocznego canvasa.
 - Kształt ma domyślne właściwości: fill `#E8A838`, stroke `#B07820`, strokeWidth `2`, opacity `1`.
 - Kształt jest natychmiast zaznaczony; uchwyty są widoczne gdy kursor znajduje się nad kształtem.
@@ -390,6 +392,7 @@ Tytuł: Tworzenie trójkąta
 Opis: Jako użytkownik chcę kliknąć narzędzie "Trójkąt" w toolbarze, aby pojawił się nowy trójkąt na canvasie.
 
 Kryteria akceptacji:
+
 - Po kliknięciu ikony trójkąta nowy kształt pojawia się w centrum widocznego canvasa.
 - Trójkąt ma domyślne właściwości: fill `#5CB85C`, stroke `#3A7A3A`, strokeWidth `2`, opacity `1`.
 - Kształt jest natychmiast zaznaczony; uchwyty są widoczne.
@@ -403,6 +406,7 @@ Tytuł: Tworzenie linii i polilinii
 Opis: Jako użytkownik chcę kliknąć narzędzie "Linia" aby narysować linię, a następnie klikając dalej na canvasie wydłużyć ją o kolejne segmenty (polilinia).
 
 Kryteria akceptacji:
+
 - Po kliknięciu narzędzia linia nowy segment pojawia się w centrum widocznego canvasa.
 - Linia ma domyślne właściwości: stroke `#333333`, strokeWidth `2`, opacity `1`, styl solid.
 - Gdy zaznaczona jest jedna lub więcej linii tworzących łańcuch, kliknięcie na pustym obszarze canvasa dodaje nowy segment od końca ostatniej linii do klikniętego punktu.
@@ -417,6 +421,7 @@ Tytuł: Sticky properties per typ kształtu
 Opis: Jako użytkownik chcę, aby nowy kształt danego typu dziedziczył właściwości ostatnio edytowanego kształtu tego samego typu.
 
 Kryteria akceptacji:
+
 - Jeśli użytkownik zmienił kolor prostokąta, kolejny nowy prostokąt pojawia się z tym kolorem.
 - Sticky properties są niezależne per typ kształtu.
 - Przy pierwszym uruchomieniu używane są twarde wartości domyślne.
@@ -433,6 +438,7 @@ Tytuł: Przeciąganie kształtu
 Opis: Jako użytkownik chcę móc przeciągać kształt po canvasie, zmieniając jego pozycję.
 
 Kryteria akceptacji:
+
 - Kliknięcie i przeciągnięcie zaznaczonego kształtu zmienia jego pozycję.
 - Przeciąganie kilku zaznaczonych kształtów przesuwa je jednocześnie z zachowaniem wzajemnych odległości.
 - Każde zakończenie drag (onDragEnd) tworzy jeden wpis `UPDATE_SHAPES` w historii.
@@ -446,6 +452,7 @@ Tytuł: Widoczność uchwytów
 Opis: Jako użytkownik chcę widzieć uchwyty tylko gdy jestem kursorem nad zaznaczonym kształtem.
 
 Kryteria akceptacji:
+
 - Uchwyty widoczne wyłącznie gdy kształt zaznaczony ORAZ kursor nad kształtem (lub drag uchwytu aktywny).
 - Gdy kursor opuszcza obszar kształtu, uchwyty znikają.
 - Hover na niezaznaczonym kształcie nie pokazuje uchwytów.
@@ -459,6 +466,7 @@ Tytuł: Resize kształtu przez uchwyty boczne
 Opis: Jako użytkownik chcę zmieniać rozmiar kształtu za pomocą 4 uchwytów bocznych.
 
 Kryteria akceptacji:
+
 - 4 uchwyty na środkach boków bounding boxa.
 - Przeciąganie uchwytu zmienia kształt zgodnie z logiką per-shape (applyHandleDrag w ShapeDefinition).
 - Zmiana rozmiaru przez uchwyt podczas drag jest transient (updateShapeTransient); commit po mouseup (commitShapeUpdate) — jeden wpis w historii.
@@ -472,6 +480,7 @@ Tytuł: Rotacja kształtu przez uchwyt rotacji
 Opis: Jako użytkownik chcę obracać kształt za pomocą uchwytu rotacji w lewym górnym rogu.
 
 Kryteria akceptacji:
+
 - Uchwyt rotacji w lewym górnym rogu bounding boxa.
 - Przeciąganie obraca kształt wokół centrum; kąt obliczany przez atan2 od pozycji startowej.
 - Rotacja jest transient podczas drag, commit po mouseup — jeden wpis w historii.
@@ -484,6 +493,7 @@ Tytuł: Skalowanie proporcjonalne przez uchwyt w prawym górnym rogu
 Opis: Jako użytkownik chcę skalować kształt proporcjonalnie przez uchwyt w prawym górnym rogu.
 
 Kryteria akceptacji:
+
 - Uchwyt skalowania proporcjonalnego w prawym górnym rogu.
 - Skalowanie zachowuje aspect ratio.
 - Działa dla kształtów pojedynczych i multi-select.
@@ -496,6 +506,7 @@ Tytuł: Usuwanie kształtu
 Opis: Jako użytkownik chcę usunąć zaznaczony kształt klawiszem Delete lub Backspace.
 
 Kryteria akceptacji:
+
 - `Delete` lub `Backspace` usuwa wszystkie zaznaczone kształty jedną komendą REMOVE_SHAPES.
 - Po usunięciu Properties Sidebar jest ukryty.
 - Operacja jest cofalna przez Ctrl+Z.
@@ -509,6 +520,7 @@ Tytuł: Zarządzanie kolejnością rysowania kształtów
 Opis: Jako użytkownik chcę zmieniać kolejność rysowania kształtów przez przyciski w toolbarze.
 
 Kryteria akceptacji:
+
 - Cztery przyciski w toolbarze: Bring Forward, Bring to Front, Send Backward, Send to Back.
 - Przyciski są wyłączone (disabled) gdy brak zaznaczenia.
 - Każda operacja tworzy wpis REORDER_SHAPES w historii (cofalny).
@@ -525,6 +537,7 @@ Tytuł: Zoom sceny przez Ctrl+Scroll
 Opis: Jako użytkownik chcę powiększać i pomniejszać scenę.
 
 Kryteria akceptacji:
+
 - `Ctrl/Cmd + scroll` zmienia skalę względem pozycji kursora.
 - Minimalna skala to max(window.innerWidth / CANVAS_WIDTH, window.innerHeight / CANVAS_HEIGHT).
 - Maksymalna skala to 2.0.
@@ -538,6 +551,7 @@ Tytuł: Pan sceny narzędziem Dłoń
 Opis: Jako użytkownik chcę przełączyć się na narzędzie Dłoń i przeciągać scenę.
 
 Kryteria akceptacji:
+
 - Kliknięcie ikony dłoni przełącza na tryb pan.
 - Przeciąganie przesuwa scenę w ramach clampPosition (canvas nie wychodzi poza widoczny obszar).
 - Kształty nie są zaznaczane podczas panu.
@@ -548,6 +562,7 @@ US-015
 Tytuł: Responsywność canvasa
 
 Kryteria akceptacji:
+
 - Resize okna przeglądarki automatycznie dopasowuje skalę i pozycję canvasa.
 - Kształty pozostają na swoich miejscach.
 
@@ -561,6 +576,7 @@ US-017
 Tytuł: Multi-select przez marquee selection [ZMIANA]
 
 Kryteria akceptacji:
+
 - Przeciąganie na pustym obszarze w trybie select tworzy marquee.
 - Zaznaczane są tylko kształty z aktywnej warstwy (jeśli widoczna i odblokowana).
 - Kształty przecięte lub zawarte w marquee są zaznaczane.
@@ -577,6 +593,7 @@ Tytuł: Zarządzanie warstwami
 Opis: Jako użytkownik chcę organizować kształty w warstwach, kontrolować ich widoczność i blokadę.
 
 Kryteria akceptacji:
+
 - Layers Sidebar widoczny zawsze w dolnej części prawego sidebar.
 - Warstwy wyświetlane od frontowej (góra) do tylnej (dół).
 - Każda warstwa ma przyciski: Eye (visibility), Lock, ChevronUp, ChevronDown, Trash (jeśli >1 warstwy).
@@ -597,6 +614,7 @@ US-021 [ZMIANA]
 Tytuł: Edycja właściwości kształtu przez sidebar
 
 Kryteria akceptacji:
+
 - Sidebar wyświetlany gdy zaznaczony dokładnie 1 kształt.
 - Wyświetla: typ, shape-specific PropertiesPanel, opacity slider, fill color picker (jeśli ma fill), stroke color picker.
 - Zmiany przez color picker: transient podczas drag (onChange), commit po zakończeniu (onPointerUp/onAfterChange) — jeden wpis w historii.
@@ -623,6 +641,7 @@ US-036
 Tytuł: Cofanie ostatniej zmiany (Undo) [ZAIMPLEMENTOWANE]
 
 Kryteria akceptacji:
+
 - `Ctrl+Z` cofa ostatnią komendę z historii.
 - Dostępne dla: ADD_SHAPE, REMOVE_SHAPES, UPDATE_SHAPE, UPDATE_SHAPES, SET_SHAPES, REORDER_SHAPES.
 - Historia do 50 kroków; przy przekroczeniu najstarsza komenda usuwana (FIFO).
@@ -634,6 +653,7 @@ US-037
 Tytuł: Ponawianie cofniętej zmiany (Redo) [ZAIMPLEMENTOWANE]
 
 Kryteria akceptacji:
+
 - `Ctrl+Y` lub `Ctrl+Shift+Z` przywraca cofniętą komendę.
 - Nowa akcja mutująca kształty czyści stos redo (`_future = []`).
 - Gdy stos redo pusty, skrót nie wywołuje efektu (`canRedo = false`).
@@ -648,6 +668,7 @@ US-044
 Tytuł: Płynność działania przy 200 kształtach
 
 Kryteria akceptacji:
+
 - Scena z 200 kształtami renderuje się w 60 fps na przeciętnym laptopie.
 - Drag, resize i rotate przy 200 kształtach bez zauważalnych lagów.
 - Zoom i pan płynne.
@@ -658,6 +679,7 @@ US-045
 Tytuł: Brak błędów w konsoli przeglądarki w środowisku produkcyjnym
 
 Kryteria akceptacji:
+
 - Aplikacja uruchomiona na Vercel nie generuje błędów ani ostrzeżeń w konsoli.
 - Brak nieobsłużonych wyjątków JavaScript.
 
@@ -667,28 +689,28 @@ Kryteria akceptacji:
 
 ### Metryki wydajnościowe
 
-| Metryka | Docelowa wartość |
-|---|---|
-| Framerate przy 200 kształtach | >= 60 fps na przeciętnym laptopie |
-| Czas ładowania aplikacji (LCP) | < 3 sekundy |
-| Błędy w konsoli produkcyjnej | 0 |
+| Metryka                        | Docelowa wartość                  |
+| ------------------------------ | --------------------------------- |
+| Framerate przy 200 kształtach  | >= 60 fps na przeciętnym laptopie |
+| Czas ładowania aplikacji (LCP) | < 3 sekundy                       |
+| Błędy w konsoli produkcyjnej   | 0                                 |
 
 ### Metryki jakości kodu i architektury
 
-| Metryka | Docelowa wartość |
-|---|---|
-| Zarządzanie stanem | Zustand + Immer (custom history slice, bez zundo) |
-| Handle system | Per-shape w ShapeDefinition (open/closed principle) |
-| Warstwy | LayersSlice + LayersSidebar + layer-aware rendering |
-| Serializowalność stanu | Pełen eksport/import sceny do/z CanvasDocument JSON |
-| Historia zmian | Command Pattern, 50 kroków, JSON-serializowalne komendy |
+| Metryka                | Docelowa wartość                                        |
+| ---------------------- | ------------------------------------------------------- |
+| Zarządzanie stanem     | Zustand + Immer (custom history slice, bez zundo)       |
+| Handle system          | Per-shape w ShapeDefinition (open/closed principle)     |
+| Warstwy                | LayersSlice + LayersSidebar + layer-aware rendering     |
+| Serializowalność stanu | Pełen eksport/import sceny do/z CanvasDocument JSON     |
+| Historia zmian         | Command Pattern, 50 kroków, JSON-serializowalne komendy |
 
 ### Metryki portfolio
 
-| Metryka | Docelowa wartość |
-|---|---|
-| Dostępność live | Aplikacja działa bez błędów na Vercel |
-| Dokumentacja | README zawiera opis decyzji architektonicznych |
+| Metryka             | Docelowa wartość                                                   |
+| ------------------- | ------------------------------------------------------------------ |
+| Dostępność live     | Aplikacja działa bez błędów na Vercel                              |
+| Dokumentacja        | README zawiera opis decyzji architektonicznych                     |
 | Zakres funkcjonalny | MVP Core ukończone jako milestone 1; MVP Extended jako milestone 2 |
 
 ### Definicja "gotowe" per milestone

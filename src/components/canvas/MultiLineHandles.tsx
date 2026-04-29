@@ -15,35 +15,51 @@ const PAD = HR + 4
 
 function lineWorldPoints(line: LineShape): Point[] {
   const θ = line.rotation * (Math.PI / 180)
-  const cosθ = Math.cos(θ), sinθ = Math.sin(θ)
+  const cosθ = Math.cos(θ),
+    sinθ = Math.sin(θ)
   const out: Point[] = []
   for (let i = 0; i + 1 < line.points.length; i += 2) {
-    const lx = line.points[i], ly = line.points[i + 1]
+    const lx = line.points[i],
+      ly = line.points[i + 1]
     out.push({ x: line.x + lx * cosθ - ly * sinθ, y: line.y + lx * sinθ + ly * cosθ })
   }
   return out
 }
 
-interface Bbox extends BoundingBox { cx: number; cy: number }
+interface Bbox extends BoundingBox {
+  cx: number
+  cy: number
+}
 
 function combinedBbox(lines: LineShape[]): Bbox | null {
   const pts = lines.flatMap(lineWorldPoints)
   if (pts.length === 0) return null
-  const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y)
-  const x1 = Math.min(...xs) - PAD, x2 = Math.max(...xs) + PAD
-  const y1 = Math.min(...ys) - PAD, y2 = Math.max(...ys) + PAD
+  const xs = pts.map((p) => p.x),
+    ys = pts.map((p) => p.y)
+  const x1 = Math.min(...xs) - PAD,
+    x2 = Math.max(...xs) + PAD
+  const y1 = Math.min(...ys) - PAD,
+    y2 = Math.max(...ys) + PAD
   return { x1, y1, x2, y2, cx: (x1 + x2) / 2, cy: (y1 + y2) / 2 }
 }
 
 // ── Drag state ────────────────────────────────────────────────────────────────
 
-interface StartLine { id: string; x: number; y: number; rotation: number; points: number[] }
+interface StartLine {
+  id: string
+  x: number
+  y: number
+  rotation: number
+  points: number[]
+}
 
 interface DragState {
   kind: 'scale' | 'rotate'
   startPtr: Point
-  cx: number; cy: number
-  hdx: number; hdy: number
+  cx: number
+  cy: number
+  hdx: number
+  hdy: number
   hdLen: number
   lines: StartLine[]
 }
@@ -54,7 +70,9 @@ function screenToWorld(e: PointerEvent, pos: Point, scale: number): Point {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-interface Props { onDragEnd: () => void }
+interface Props {
+  onDragEnd: () => void
+}
 
 export function MultiLineHandles({ onDragEnd }: Props) {
   const shapes = useCanvasStore((s) => s.shapes)
@@ -63,7 +81,7 @@ export function MultiLineHandles({ onDragEnd }: Props) {
   const dragRef = useRef<DragState | null>(null)
 
   const selectedLines = shapes.filter(
-    (s): s is LineShape => s.type === 'line' && selectedShapeIds.includes(s.id),
+    (s): s is LineShape => s.type === 'line' && selectedShapeIds.includes(s.id)
   )
   if (selectedLines.length === 0 || selectedShapeIds.length >= 2) return null
 
@@ -76,12 +94,25 @@ export function MultiLineHandles({ onDragEnd }: Props) {
     e.cancelBubble = true
     const { canvasScale, canvasPosition } = useCanvasStore.getState()
     const startPtr = screenToWorld(e.evt, canvasPosition, canvasScale)
-    const hdx = x2 - cx, hdy = y1 - cy
+    const hdx = x2 - cx,
+      hdy = y1 - cy
     const hdLen = Math.sqrt(hdx * hdx + hdy * hdy)
 
     dragRef.current = {
-      kind, startPtr, cx, cy, hdx, hdy, hdLen,
-      lines: selectedLines.map((l) => ({ id: l.id, x: l.x, y: l.y, rotation: l.rotation, points: l.points.slice() })),
+      kind,
+      startPtr,
+      cx,
+      cy,
+      hdx,
+      hdy,
+      hdLen,
+      lines: selectedLines.map((l) => ({
+        id: l.id,
+        x: l.x,
+        y: l.y,
+        rotation: l.rotation,
+        points: l.points.slice(),
+      })),
     }
 
     const onMove = (pe: PointerEvent) => {
@@ -95,9 +126,11 @@ export function MultiLineHandles({ onDragEnd }: Props) {
         const a1 = Math.atan2(curr.y - d.cy, curr.x - d.cx)
         const dθDeg = (a1 - a0) * (180 / Math.PI)
         const dθRad = a1 - a0
-        const sinΔ = Math.sin(dθRad), cosΔ = Math.cos(dθRad)
+        const sinΔ = Math.sin(dθRad),
+          cosΔ = Math.cos(dθRad)
         d.lines.forEach((l) => {
-          const dx = l.x - d.cx, dy = l.y - d.cy
+          const dx = l.x - d.cx,
+            dy = l.y - d.cy
           updateShape(l.id, {
             x: d.cx + dx * cosΔ - dy * sinΔ,
             y: d.cy + dx * sinΔ + dy * cosΔ,
@@ -133,10 +166,12 @@ export function MultiLineHandles({ onDragEnd }: Props) {
   return (
     <>
       <KonvaRect
-        x={x1} y={y1}
-        width={x2 - x1} height={y2 - y1}
+        x={x1}
+        y={y1}
+        width={x2 - x1}
+        height={y2 - y1}
         fillEnabled={false}
-        stroke='#3b82f6'
+        stroke="#3b82f6"
         strokeWidth={1}
         dash={[4, 3]}
         listening={false}
@@ -144,23 +179,30 @@ export function MultiLineHandles({ onDragEnd }: Props) {
       />
       {/* Scale — top-right, blue square */}
       <KonvaRect
-        x={x2 - HR} y={y1 - HR}
-        width={HR * 2} height={HR * 2}
-        fill='#3b82f6'
-        stroke='#1d4ed8'
+        x={x2 - HR}
+        y={y1 - HR}
+        width={HR * 2}
+        height={HR * 2}
+        fill="#3b82f6"
+        stroke="#1d4ed8"
         strokeWidth={1.5}
         onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'scale')}
-        onClick={(e) => { e.cancelBubble = true }}
+        onClick={(e) => {
+          e.cancelBubble = true
+        }}
       />
       {/* Rotate — top-left, amber circle */}
       <KonvaCircle
-        x={x1} y={y1}
+        x={x1}
+        y={y1}
         radius={HR}
-        fill='#f59e0b'
-        stroke='#d97706'
+        fill="#f59e0b"
+        stroke="#d97706"
         strokeWidth={1.5}
         onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'rotate')}
-        onClick={(e) => { e.cancelBubble = true }}
+        onClick={(e) => {
+          e.cancelBubble = true
+        }}
       />
     </>
   )

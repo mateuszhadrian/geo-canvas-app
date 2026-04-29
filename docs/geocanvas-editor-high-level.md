@@ -21,6 +21,7 @@ Stylistycznie aplikacja nawiązuje do narzędzi takich jak **tldraw** i **Excali
 ## Główne założenia funkcjonalne
 
 ### Tworzenie i edycja kształtów
+
 - Użytkownik wybiera narzędzie z paska (prostokąt, koło/elipsa, trójkąt, linia)
 - Po wybraniu narzędzia kształt pojawia się na scenie i można nim natychmiast manipulować
 - Każdy kształt obsługuje: zmianę rozmiaru, proporcji, obrót, przeciąganie
@@ -28,11 +29,13 @@ Stylistycznie aplikacja nawiązuje do narzędzi takich jak **tldraw** i **Excali
 - Koło można przekształcić w elipsę (niezależna zmiana osi X i Y)
 
 ### Nawigacja po scenie
+
 - Zoom sceny (scroll kółkiem myszy lub pinch na touchpadzie)
 - Pan sceny (przeciąganie tła / środkowy przycisk myszy)
 - Scena stabilnie dopasowuje się do rozmiaru okna przeglądarki (ResizeObserver) — canvas nie "rozpada się" przy resize
 
 ### Zaznaczanie i organizacja
+
 - Zaznaczanie pojedynczego kształtu kliknięciem
 - Zaznaczanie wielu kształtów (marquee selection lub Shift+klik)
 - Grupowanie zaznaczonych kształtów i rozgrupowywanie
@@ -40,6 +43,7 @@ Stylistycznie aplikacja nawiązuje do narzędzi takich jak **tldraw** i **Excali
 - Usuwanie i kopiowanie kształtów
 
 ### Trwałość danych
+
 - Serializacja całej sceny do formatu JSON
 - Zapis stanu do `localStorage` (autosave)
 - Eksport sceny do pliku `.json`
@@ -49,13 +53,13 @@ Stylistycznie aplikacja nawiązuje do narzędzi takich jak **tldraw** i **Excali
 
 ## Planowane rozszerzenia (poza MVP)
 
-| Funkcja | Opis |
-|---|---|
-| Eksport do PNG/JPG | Wykorzystanie `stage.toDataURL()` z Konva.js |
-| Historia zmian | Cofanie/ponawianie akcji (Ctrl+Z / Ctrl+Y) przez stos stanów |
-| Symulowany obrót 2.5D | Efekt perspektywicznego obrotu kształtu wokół osi Z (co 45°, realizowany przez transformację `scaleY`) — nie prawdziwe 3D, ale wizualnie satysfakcjonujący efekt |
-| Połączenia między kształtami | Linie/strzałki łączące kształty (jak w diagramach) |
-| Mind map / diagram mode | Węzły z etykietami połączone relacjami |
+| Funkcja                      | Opis                                                                                                                                                             |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Eksport do PNG/JPG           | Wykorzystanie `stage.toDataURL()` z Konva.js                                                                                                                     |
+| Historia zmian               | Cofanie/ponawianie akcji (Ctrl+Z / Ctrl+Y) przez stos stanów                                                                                                     |
+| Symulowany obrót 2.5D        | Efekt perspektywicznego obrotu kształtu wokół osi Z (co 45°, realizowany przez transformację `scaleY`) — nie prawdziwe 3D, ale wizualnie satysfakcjonujący efekt |
+| Połączenia między kształtami | Linie/strzałki łączące kształty (jak w diagramach)                                                                                                               |
+| Mind map / diagram mode      | Węzły z etykietami połączone relacjami                                                                                                                           |
 
 ---
 
@@ -96,6 +100,7 @@ Stylistycznie aplikacja nawiązuje do narzędzi takich jak **tldraw** i **Excali
 ## Cel portfolio
 
 Po zrealizowaniu MVP i kluczowych rozszerzeń projekt ma prezentować:
+
 - Umiejętność pracy z interaktywnym canvas API w środowisku React/Next.js
 - Dbałość o UX (płynna nawigacja, stabilność UI)
 - Architekturę opartą na stanie (serializowalny stan sceny → JSON)

@@ -7,15 +7,8 @@ module.exports = createJestConfig({
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testMatch: [
-    '<rootDir>/tests/unit/**/*.test.ts',
-    '<rootDir>/tests/unit/**/*.test.tsx',
-  ],
+  testMatch: ['<rootDir>/tests/unit/**/*.test.ts', '<rootDir>/tests/unit/**/*.test.tsx'],
   passWithNoTests: true,
   coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/app/layout.tsx',
-  ],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/app/layout.tsx'],
 })

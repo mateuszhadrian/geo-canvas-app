@@ -13,6 +13,7 @@ GeoCanvas is a minimalist geometric shape editor (SPA) built with Next.js App Ro
 ## Canonical Sources
 
 When details conflict or are missing here, use these files in order:
+
 1. `.ai/prd.md` (product behavior and acceptance criteria)
 2. `.ai/tech-stack.md` and `.ai/tech-stack-analysis.md` (stack decisions)
 3. `docs/geocanvas-prd-summary.md` (condensed product summary)
@@ -20,6 +21,7 @@ When details conflict or are missing here, use these files in order:
 ## Rule Priority
 
 Apply rules in this precedence order (highest first):
+
 1. This `CLAUDE.md`
 2. `.cursor/rules/shared.mdc`
 3. Domain-specific `.cursor/rules/*.mdc`

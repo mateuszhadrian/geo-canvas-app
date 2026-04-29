@@ -6,7 +6,7 @@ export function getLineAnchors(shape: LineShape): AnchorPoint[] {
   if (pts.length < 4) return []
   const anchors: AnchorPoint[] = [
     { id: 'start', x: pts[0], y: pts[1] },
-    { id: 'end',   x: pts[pts.length - 2], y: pts[pts.length - 1] },
+    { id: 'end', x: pts[pts.length - 2], y: pts[pts.length - 1] },
   ]
   // Midpoints for multi-segment polylines
   for (let i = 2; i + 3 < pts.length; i += 2) {

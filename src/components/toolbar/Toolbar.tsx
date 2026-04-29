@@ -1,6 +1,17 @@
 'use client'
 
-import { MousePointer2, Hand, Square, Circle, Triangle, Minus, BringToFront, SendToBack, ArrowUp, ArrowDown } from 'lucide-react'
+import {
+  MousePointer2,
+  Hand,
+  Square,
+  Circle,
+  Triangle,
+  Minus,
+  BringToFront,
+  SendToBack,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { useCanvasStore } from '@/store/use-canvas-store'
 import { SHAPE_REGISTRY } from '@/shapes/registry'
@@ -97,9 +108,21 @@ export function Toolbar() {
       <div className="my-1 w-8 border-t" style={{ borderColor: 'var(--color-toolbar-border)' }} />
 
       {[
-        { label: 'Przesuń warstwę wyżej', icon: ArrowUp, action: () => bringForward(selectedShapeIds) },
-        { label: 'Przesuń na wierzch', icon: BringToFront, action: () => bringToFront(selectedShapeIds) },
-        { label: 'Przesuń warstwę niżej', icon: ArrowDown, action: () => sendBackward(selectedShapeIds) },
+        {
+          label: 'Przesuń warstwę wyżej',
+          icon: ArrowUp,
+          action: () => bringForward(selectedShapeIds),
+        },
+        {
+          label: 'Przesuń na wierzch',
+          icon: BringToFront,
+          action: () => bringToFront(selectedShapeIds),
+        },
+        {
+          label: 'Przesuń warstwę niżej',
+          icon: ArrowDown,
+          action: () => sendBackward(selectedShapeIds),
+        },
         { label: 'Przesuń na spód', icon: SendToBack, action: () => sendToBack(selectedShapeIds) },
       ].map(({ label, icon: Icon, action }) => (
         <button

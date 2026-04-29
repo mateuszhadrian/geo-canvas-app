@@ -3,7 +3,13 @@
 import { Line } from 'react-konva'
 import type { TriangleShape } from './types'
 
-export function TriangleRenderer({ shape, isSelected }: { shape: TriangleShape; isSelected: boolean }) {
+export function TriangleRenderer({
+  shape,
+  isSelected,
+}: {
+  shape: TriangleShape
+  isSelected: boolean
+}) {
   return (
     <>
       <Line
@@ -18,7 +24,7 @@ export function TriangleRenderer({ shape, isSelected }: { shape: TriangleShape; 
           points={[...shape.vertices]}
           closed
           fillEnabled={false}
-          stroke='#93c5fd'
+          stroke="#93c5fd"
           strokeWidth={2}
           listening={false}
           hitStrokeWidth={0}

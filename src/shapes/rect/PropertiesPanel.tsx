@@ -37,9 +37,14 @@ function NumericField({
         min={min}
         onChange={(e) => setLocal(e.target.value)}
         onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Enter') commit() }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+        }}
         className="w-full rounded border px-1.5 py-0.5 text-xs font-mono text-gray-300 outline-none focus:border-blue-500"
-        style={{ backgroundColor: 'var(--color-canvas-bg)', borderColor: 'var(--color-toolbar-border)' }}
+        style={{
+          backgroundColor: 'var(--color-canvas-bg)',
+          borderColor: 'var(--color-toolbar-border)',
+        }}
       />
     </div>
   )
@@ -64,19 +69,28 @@ export function RectPropertiesPanel({ shape }: { shape: RectShape }) {
         label="Width"
         value={shape.width}
         min={10}
-        onCommit={(v) => { beforeRef.current = { width: shape.width }; commit('width', v) }}
+        onCommit={(v) => {
+          beforeRef.current = { width: shape.width }
+          commit('width', v)
+        }}
       />
       <NumericField
         label="Height"
         value={shape.height}
         min={10}
-        onCommit={(v) => { beforeRef.current = { height: shape.height }; commit('height', v) }}
+        onCommit={(v) => {
+          beforeRef.current = { height: shape.height }
+          commit('height', v)
+        }}
       />
       <NumericField
         label="Corner radius"
         value={shape.cornerRadius}
         min={0}
-        onCommit={(v) => { beforeRef.current = { cornerRadius: shape.cornerRadius }; commit('cornerRadius', v) }}
+        onCommit={(v) => {
+          beforeRef.current = { cornerRadius: shape.cornerRadius }
+          commit('cornerRadius', v)
+        }}
       />
     </div>
   )

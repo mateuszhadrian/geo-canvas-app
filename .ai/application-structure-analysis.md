@@ -4,13 +4,13 @@
 
 The codebase is small but already shows the scaling problem. Shape-specific logic lives scattered across multiple files:
 
-| Concern | Current location |
-|---|---|
-| Type definitions | `src/store/types.ts` — all shapes in one file |
+| Concern           | Current location                                               |
+| ----------------- | -------------------------------------------------------------- |
+| Type definitions  | `src/store/types.ts` — all shapes in one file                  |
 | Factory functions | `src/components/canvas/CanvasApp.tsx` — `createShape()` switch |
-| Konva renderers | `src/components/canvas/CanvasApp.tsx` — `ShapeNode` switch |
-| Labels / metadata | `src/components/canvas/CanvasApp.tsx` — `LABELS` constant |
-| Properties panel | Not yet built |
+| Konva renderers   | `src/components/canvas/CanvasApp.tsx` — `ShapeNode` switch     |
+| Labels / metadata | `src/components/canvas/CanvasApp.tsx` — `LABELS` constant      |
+| Properties panel  | Not yet built                                                  |
 
 Adding edge-beveling to `rect` today would require touching at least 3 places. At 10 shapes × 5–10 properties each, that becomes unworkable.
 
@@ -79,26 +79,26 @@ Every shape lives in `src/shapes/<name>/` and exports a **ShapeDefinition** obje
 ```typescript
 // src/shapes/_base/definition.ts
 export interface ShapeDefinition<S extends BaseShape = BaseShape> {
-  type:             S['type']
-  label:            string                              // "Rectangle", "Circle" …
-  icon:             React.ComponentType                 // lucide-react icon
-  defaults:         Omit<S, 'id' | 'x' | 'y'>          // used by factory + sticky defaults
-  create:           (pos: { x: number; y: number }, overrides?: Partial<S>) => S
-  Renderer:         React.ComponentType<RendererProps<S>>
-  PropertiesPanel:  React.ComponentType<PanelProps<S>>
+  type: S['type']
+  label: string // "Rectangle", "Circle" …
+  icon: React.ComponentType // lucide-react icon
+  defaults: Omit<S, 'id' | 'x' | 'y'> // used by factory + sticky defaults
+  create: (pos: { x: number; y: number }, overrides?: Partial<S>) => S
+  Renderer: React.ComponentType<RendererProps<S>>
+  PropertiesPanel: React.ComponentType<PanelProps<S>>
 }
 ```
 
 ### What goes in each file
 
-| File | Responsibility |
-|---|---|
-| `types.ts` | TypeScript interface for this shape + its specific `Update` type |
-| `defaults.ts` | Default property values (fill colour, size, cornerRadius …) |
-| `factory.ts` | `create(pos, overrides?)` — returns a fully typed shape object |
-| `Renderer.tsx` | Single Konva component — all visual logic for this shape |
-| `PropertiesPanel.tsx` | Sidebar controls for this shape's properties |
-| `index.ts` | Assembles and exports the `ShapeDefinition` object |
+| File                  | Responsibility                                                   |
+| --------------------- | ---------------------------------------------------------------- |
+| `types.ts`            | TypeScript interface for this shape + its specific `Update` type |
+| `defaults.ts`         | Default property values (fill colour, size, cornerRadius …)      |
+| `factory.ts`          | `create(pos, overrides?)` — returns a fully typed shape object   |
+| `Renderer.tsx`        | Single Konva component — all visual logic for this shape         |
+| `PropertiesPanel.tsx` | Sidebar controls for this shape's properties                     |
+| `index.ts`            | Assembles and exports the `ShapeDefinition` object               |
 
 Example for `rect/index.ts`:
 
@@ -112,12 +112,12 @@ import { RectPropertiesPanel } from './PropertiesPanel'
 import { Square } from 'lucide-react'
 
 export const rectDefinition: ShapeDefinition<RectShape> = {
-  type:            'rect',
-  label:           'Rectangle',
-  icon:            Square,
-  defaults:        RECT_DEFAULTS,
-  create:          createRect,
-  Renderer:        RectRenderer,
+  type: 'rect',
+  label: 'Rectangle',
+  icon: Square,
+  defaults: RECT_DEFAULTS,
+  create: createRect,
+  Renderer: RectRenderer,
   PropertiesPanel: RectPropertiesPanel,
 }
 ```
@@ -129,20 +129,20 @@ export const rectDefinition: ShapeDefinition<RectShape> = {
 `src/shapes/registry.ts` is the single file that knows about all shapes:
 
 ```typescript
-import { rectDefinition }     from './rect'
-import { circleDefinition }   from './circle'
-import { ellipseDefinition }  from './ellipse'
+import { rectDefinition } from './rect'
+import { circleDefinition } from './circle'
+import { ellipseDefinition } from './ellipse'
 import { triangleDefinition } from './triangle'
-import { lineDefinition }     from './line'
-import type { ShapeType }     from './_base/types'
+import { lineDefinition } from './line'
+import type { ShapeType } from './_base/types'
 import type { ShapeDefinition } from './_base/definition'
 
 export const SHAPE_REGISTRY: Record<ShapeType, ShapeDefinition> = {
-  rect:     rectDefinition,
-  circle:   circleDefinition,
-  ellipse:  ellipseDefinition,
+  rect: rectDefinition,
+  circle: circleDefinition,
+  ellipse: ellipseDefinition,
   triangle: triangleDefinition,
-  line:     lineDefinition,
+  line: lineDefinition,
 }
 
 export const SHAPE_TYPES = Object.keys(SHAPE_REGISTRY) as ShapeType[]
@@ -210,8 +210,8 @@ When grouping (MVP Extended) or a `customShape` type arrives, create `src/shapes
 ```typescript
 export interface CustomShape extends BaseShape {
   type: 'custom'
-  childIds: string[]   // references other shapes in the store
-  label: string        // user-defined group name
+  childIds: string[] // references other shapes in the store
+  label: string // user-defined group name
 }
 ```
 

@@ -19,9 +19,15 @@ function getField(obj: unknown, key: string): unknown {
 // ── ColorRow ──────────────────────────────────────────────────────────────────
 
 function ColorRow({
-  label, color, open, onToggle, onChange,
+  label,
+  color,
+  open,
+  onToggle,
+  onChange,
 }: {
-  label: string; color: string; open: boolean
+  label: string
+  color: string
+  open: boolean
   onToggle: () => void
   onChange: (c: ColorResult) => void
 }) {
@@ -31,7 +37,10 @@ function ColorRow({
         onClick={onToggle}
         className="flex w-full items-center gap-2 rounded px-1 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors"
       >
-        <span className="h-4 w-4 shrink-0 rounded border border-gray-200" style={{ backgroundColor: color }} />
+        <span
+          className="h-4 w-4 shrink-0 rounded border border-gray-200"
+          style={{ backgroundColor: color }}
+        />
         <span>{label}</span>
         <span className="ml-auto font-mono text-gray-400">{color.toUpperCase()}</span>
       </button>
@@ -104,7 +113,10 @@ export function PropertiesSidebar() {
   const commit = (field: keyof ShapeUpdate) => {
     if (beforeRef.current === null) return
     const current = useCanvasStore.getState().shapes.find((s) => s.id === shape.id)
-    if (!current) { beforeRef.current = null; return }
+    if (!current) {
+      beforeRef.current = null
+      return
+    }
     const currentVal = getField(current, field)
     const after: ShapeUpdate = { [field]: currentVal }
     if (getField(beforeRef.current, field) !== currentVal) {
@@ -117,9 +129,7 @@ export function PropertiesSidebar() {
 
   return (
     <div className="flex flex-col gap-4 px-4 py-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-        {shape.type}
-      </p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{shape.type}</p>
 
       {/* Shape-specific numeric properties */}
       <PropertiesPanel shape={shape as never} />
@@ -137,8 +147,12 @@ export function PropertiesSidebar() {
           min={0}
           max={100}
           value={opacityPct}
-          onPointerDown={() => { beforeRef.current = { opacity: shape.opacity } }}
-          onChange={(e) => updateShapeTransient(shape.id, { opacity: Number(e.target.value) / 100 })}
+          onPointerDown={() => {
+            beforeRef.current = { opacity: shape.opacity }
+          }}
+          onChange={(e) =>
+            updateShapeTransient(shape.id, { opacity: Number(e.target.value) / 100 })
+          }
           onPointerUp={() => commit('opacity')}
           className="w-full accent-blue-500"
         />

@@ -1,5 +1,12 @@
 import type { EllipseShape } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
+import type {
+  HandleGeometry,
+  StartSnapshot,
+  FieldUpdate,
+  Point,
+  BoundingBox,
+  HandleKind,
+} from '../_base/types'
 
 interface EllipseStart extends StartSnapshot {
   radiusX: number
@@ -7,18 +14,25 @@ interface EllipseStart extends StartSnapshot {
 }
 
 export function captureEllipseStart(shape: EllipseShape): StartSnapshot {
-  return { x: shape.x, y: shape.y, rotation: shape.rotation, radiusX: shape.radiusX, radiusY: shape.radiusY } as EllipseStart
+  return {
+    x: shape.x,
+    y: shape.y,
+    rotation: shape.rotation,
+    radiusX: shape.radiusX,
+    radiusY: shape.radiusY,
+  } as EllipseStart
 }
 
 export function getEllipseHandles(shape: EllipseShape): HandleGeometry {
-  const rX = shape.radiusX, rY = shape.radiusY
+  const rX = shape.radiusX,
+    rY = shape.radiusY
   return {
     bbox: { x1: -rX, y1: -rY, x2: rX, y2: rY },
     sides: [
-      { x: 0,   y: -rY, kind: 'top' },
-      { x: rX,  y: 0,   kind: 'right' },
-      { x: 0,   y: rY,  kind: 'bottom' },
-      { x: -rX, y: 0,   kind: 'left' },
+      { x: 0, y: -rY, kind: 'top' },
+      { x: rX, y: 0, kind: 'right' },
+      { x: 0, y: rY, kind: 'bottom' },
+      { x: -rX, y: 0, kind: 'left' },
     ],
     scale: { x: rX, y: -rY },
     rotate: { x: -rX, y: -rY },
@@ -32,22 +46,25 @@ export function applyEllipseHandleDrag(
   ldy: number,
   startLocalPtr: Point,
   sinθ: number,
-  cosθ: number,
+  cosθ: number
 ): FieldUpdate {
   const s = start as EllipseStart
-  const rX = s.radiusX, rY = s.radiusY
+  const rX = s.radiusX,
+    rY = s.radiusY
 
   if (kind === 'scale') {
     const px = startLocalPtr.x + ldx
     const py = startLocalPtr.y + ldy
     const dTr = Math.sqrt(rX * rX + rY * rY)
-    const proj = (px * rX + py * (-rY)) / dTr
+    const proj = (px * rX + py * -rY) / dTr
     const f = Math.max(0.1, proj / dTr)
     return { radiusX: Math.max(5, f * rX), radiusY: Math.max(5, f * rY) }
   }
 
-  let radiusX = rX, radiusY = rY
-  let cx = 0, cy = 0
+  let radiusX = rX,
+    radiusY = rY
+  let cx = 0,
+    cy = 0
 
   if (kind === 'top') {
     const eLdy = Math.min(ldy, 2 * (rY - 1))
@@ -76,7 +93,13 @@ export function applyEllipseHandleDrag(
 }
 
 export function captureEllipseGeometry(shape: EllipseShape): FieldUpdate {
-  return { x: shape.x, y: shape.y, rotation: shape.rotation, radiusX: shape.radiusX, radiusY: shape.radiusY }
+  return {
+    x: shape.x,
+    y: shape.y,
+    rotation: shape.rotation,
+    radiusX: shape.radiusX,
+    radiusY: shape.radiusY,
+  }
 }
 
 export function getEllipseBoundingBox(shape: EllipseShape): BoundingBox {
@@ -90,7 +113,8 @@ export function getEllipseBoundingBox(shape: EllipseShape): BoundingBox {
 
 export function getEllipseWorldPoints(shape: EllipseShape): Point[] {
   const θ = shape.rotation * (Math.PI / 180)
-  const cosθ = Math.cos(θ), sinθ = Math.sin(θ)
+  const cosθ = Math.cos(θ),
+    sinθ = Math.sin(θ)
   const xExt = Math.sqrt((shape.radiusX * cosθ) ** 2 + (shape.radiusY * sinθ) ** 2)
   const yExt = Math.sqrt((shape.radiusX * sinθ) ** 2 + (shape.radiusY * cosθ) ** 2)
   return [

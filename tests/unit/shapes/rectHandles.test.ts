@@ -10,7 +10,7 @@ function drag(
   kind: HandleKind,
   ldx: number,
   ldy: number,
-  startLocalPtr = NO_PTR,
+  startLocalPtr = NO_PTR
 ) {
   const shape = buildRect({ id: 'r', ...overrides })
   const start = captureRectStart(shape)
@@ -58,18 +58,21 @@ describe('RH-004: right handle drag right (ldx=15)', () => {
 
 describe('RH-005: scale handle — proportional resize', () => {
   it('both width and height scale proportionally', () => {
-    const sw = 100, sh = 80
+    const sw = 100,
+      sh = 80
     const d_tr = Math.sqrt((sw / 2) ** 2 + (sh / 2) ** 2)
     // startLocalPtr at corner (sw/2, -sh/2), move to 2x corner
     const ptr = { x: sw / 2, y: -sh / 2 }
-    const ldx = sw / 2, ldy = -sh / 2 // delta to reach 2× distance
+    const ldx = sw / 2,
+      ldy = -sh / 2 // delta to reach 2× distance
     const result = drag({ width: sw, height: sh, x: 0, y: 0 }, 'scale', ldx, ldy, ptr)
     expect(result.width).toBeGreaterThan(sw)
     expect(result.height).toBeGreaterThan(sh)
   })
 
   it('scale factor clamped to min 0.1 when dragging inward past center', () => {
-    const sw = 100, sh = 80
+    const sw = 100,
+      sh = 80
     const ptr = { x: sw / 2, y: -sh / 2 }
     // Drag so far inward that proj < 0 → f = 0.1
     const result = drag({ width: sw, height: sh, x: 0, y: 0 }, 'scale', -1000, 1000, ptr)
@@ -112,7 +115,8 @@ describe('GH-002: rotated rect handle drag corrects center position', () => {
     const shape = buildRect({ id: 'r', x: 0, y: 0, width: 100, height: 80, rotation: 90 })
     const start = captureRectStart(shape)
     const θ = 90 * (Math.PI / 180)
-    const sinθ = Math.sin(θ), cosθ = Math.cos(θ)
+    const sinθ = Math.sin(θ),
+      cosθ = Math.cos(θ)
     const result = applyRectHandleDrag(start, 'top', 0, -20, NO_PTR, sinθ, cosθ)
     // y = s.y + (ldy / 2) * cosθ = 0 + (-10) * 0 = 0
     expect(result.y).toBeCloseTo(0)

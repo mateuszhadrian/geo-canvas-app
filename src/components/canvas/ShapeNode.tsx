@@ -42,9 +42,7 @@ export function ShapeNode({
 
   // Show anchors when hovered in select mode (preview of connector system)
   const def = SHAPE_REGISTRY[shape.type]
-  const anchorPoints = isHovered && activeTool === 'select' && def.anchors
-    ? def.anchors(shape)
-    : []
+  const anchorPoints = isHovered && activeTool === 'select' && def.anchors ? def.anchors(shape) : []
 
   return (
     <Group
@@ -62,10 +60,15 @@ export function ShapeNode({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onDragStart={(e) => {
-        if (handleDragActiveRef.current) { e.target.stopDrag(); return }
+        if (handleDragActiveRef.current) {
+          e.target.stopDrag()
+          return
+        }
         const { shapes: allShapes, selectedShapeIds: ids } = useCanvasStore.getState()
         const map = new Map<string, Point>()
-        allShapes.forEach((s) => { if (ids.includes(s.id)) map.set(s.id, { x: s.x, y: s.y }) })
+        allShapes.forEach((s) => {
+          if (ids.includes(s.id)) map.set(s.id, { x: s.x, y: s.y })
+        })
         dragStartPositions.current = map
       }}
       onDragMove={(e: KonvaEventObject<DragEvent>) => {
@@ -95,7 +98,9 @@ export function ShapeNode({
           const items = ids.flatMap((id) => {
             const s = dragStartPositions.current.get(id)
             if (!s) return []
-            return [{ id, before: { x: s.x, y: s.y }, after: { x: s.x + delta.x, y: s.y + delta.y } }]
+            return [
+              { id, before: { x: s.x, y: s.y }, after: { x: s.x + delta.x, y: s.y + delta.y } },
+            ]
           })
           if (items.length > 0) moveShapes(items)
         } else {
@@ -107,9 +112,7 @@ export function ShapeNode({
       <Renderer shape={shape} isSelected={isSelected} />
 
       {/* Anchor points — shown on hover as preview of connector system */}
-      {anchorPoints.length > 0 && !isSelected && (
-        <AnchorPoints anchors={anchorPoints} />
-      )}
+      {anchorPoints.length > 0 && !isSelected && <AnchorPoints anchors={anchorPoints} />}
 
       {isOnlySelected && activeTool === 'select' && (
         <ShapeHandles

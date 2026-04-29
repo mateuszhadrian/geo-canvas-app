@@ -16,7 +16,7 @@ export function SelectionMarquee({ x1, y1, x2, y2 }: Props) {
       y={Math.min(y1, y2)}
       width={Math.abs(x2 - x1)}
       height={Math.abs(y2 - y1)}
-      stroke='black'
+      stroke="black"
       strokeWidth={1}
       strokeScaleEnabled={false}
       dash={[4, 4]}

@@ -5,8 +5,12 @@ import { createRect } from './factory'
 import { RectRenderer } from './Renderer'
 import { RectPropertiesPanel } from './PropertiesPanel'
 import {
-  captureRectStart, getRectHandles, applyRectHandleDrag,
-  captureRectGeometry, getRectBoundingBox, getRectWorldPoints,
+  captureRectStart,
+  getRectHandles,
+  applyRectHandleDrag,
+  captureRectGeometry,
+  getRectBoundingBox,
+  getRectWorldPoints,
 } from './handles'
 import { getRectAnchors } from './anchors'
 

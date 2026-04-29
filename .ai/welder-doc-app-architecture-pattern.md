@@ -7,6 +7,7 @@
 ## 1. What Problem This Pattern Solves
 
 You need a canvas editor where:
+
 - The domain has a **closed but growing set of shape types** (welds, profiles, plates, pipes, connectors…)
 - Each shape type has **unique geometry**, **unique properties panel**, **unique drag handles**, and **unique anchor points**
 - The surrounding infrastructure (store, canvas renderer, history, layers) must work generically without knowing which shapes exist
@@ -69,31 +70,45 @@ src/
 ## 3. Core Types (`src/shapes/_base/types.ts`)
 
 ```typescript
-export interface Point { x: number; y: number }
+export interface Point {
+  x: number
+  y: number
+}
 
 export interface BaseShape {
   id: string
   type: ShapeType
-  x: number; y: number
+  x: number
+  y: number
   rotation: number
   opacity: number
   stroke: string
   strokeWidth: number
-  layerId?: string        // injected by store on addShape
+  layerId?: string // injected by store on addShape
 }
 
 // Bounding box in world coords
-export interface BoundingBox { x1: number; y1: number; x2: number; y2: number }
+export interface BoundingBox {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
 
 // A single drag handle descriptor (local coords relative to shape group origin)
-export interface HandleDescriptor { kind: string; x: number; y: number; cursor?: string }
+export interface HandleDescriptor {
+  kind: string
+  x: number
+  y: number
+  cursor?: string
+}
 
 // Full handle geometry returned by getHandles()
 export interface HandleGeometry {
-  bbox: BoundingBox          // world bbox, used for multi-select box
-  sides: HandleDescriptor[]  // edge/corner resize handles in local coords
-  scale: Point               // uniform scale handle in local coords
-  rotate: Point              // rotate handle in local coords
+  bbox: BoundingBox // world bbox, used for multi-select box
+  sides: HandleDescriptor[] // edge/corner resize handles in local coords
+  scale: Point // uniform scale handle in local coords
+  rotate: Point // rotate handle in local coords
 }
 
 // A named attachment point in local coords (relative to shape group center)
@@ -101,14 +116,14 @@ export interface AnchorPoint {
   id: string
   x: number
   y: number
-  direction?: number  // outward normal angle in degrees, 0 = right
-                      // connector shapes use this to align tangentially to the surface
+  direction?: number // outward normal angle in degrees, 0 = right
+  // connector shapes use this to align tangentially to the surface
 }
 
 // A reference to a specific anchor on a specific shape
 export interface ShapeConnection {
-  shapeId: string   // ID of the shape being connected to
-  anchorId: string  // ID of the anchor on that shape
+  shapeId: string // ID of the shape being connected to
+  anchorId: string // ID of the anchor on that shape
 }
 
 // Connector shape — a shape that attaches to anchor points on other shapes.
@@ -116,12 +131,16 @@ export interface ShapeConnection {
 export interface ConnectorShape extends BaseShape {
   connections: {
     start: ShapeConnection | null
-    end:   ShapeConnection | null
+    end: ShapeConnection | null
   }
 }
 
 // Minimal drag-start snapshot; each shape extends it with geometry it needs
-export interface StartSnapshot { x: number; y: number; rotation: number }
+export interface StartSnapshot {
+  x: number
+  y: number
+  rotation: number
+}
 
 // Loose field update (avoids circular dep with store/types.ts)
 export type FieldUpdate = Partial<Record<string, unknown>>
@@ -139,31 +158,35 @@ export interface ShapeDefinition<S extends BaseShape = BaseShape> {
   // ── Metadata ──────────────────────────────────────────────────────────────
   type: ShapeType
   label: string
-  icon: ComponentType                        // toolbar icon
+  icon: ComponentType // toolbar icon
 
   // ── Factory ───────────────────────────────────────────────────────────────
-  create: (pos: Point) => S                  // creates a new shape at position
+  create: (pos: Point) => S // creates a new shape at position
 
   // ── React components ──────────────────────────────────────────────────────
   Renderer: ComponentType<{ shape: S; isSelected: boolean }>
   PropertiesPanel: ComponentType<{ shape: S }>
 
   // ── Geometry read ─────────────────────────────────────────────────────────
-  captureGeometry: (shape: S) => FieldUpdate  // snapshot of all mutable fields
+  captureGeometry: (shape: S) => FieldUpdate // snapshot of all mutable fields
   getBoundingBox: (shape: S) => BoundingBox
-  getWorldPoints: (shape: S) => Point[]       // for multi-select convex hull
+  getWorldPoints: (shape: S) => Point[] // for multi-select convex hull
 
   // ── Handle drag (null = shape doesn't support handle editing) ─────────────
   // Invariant: either all three are non-null, or all are null.
   getHandles: ((shape: S) => HandleGeometry) | null
   captureStart: ((shape: S) => StartSnapshot) | null
-  applyHandleDrag: ((
-    start: StartSnapshot,
-    kind: string,
-    ldx: number, ldy: number,
-    startLocalPtr: Point,
-    sinθ: number, cosθ: number,
-  ) => FieldUpdate) | null
+  applyHandleDrag:
+    | ((
+        start: StartSnapshot,
+        kind: string,
+        ldx: number,
+        ldy: number,
+        startLocalPtr: Point,
+        sinθ: number,
+        cosθ: number
+      ) => FieldUpdate)
+    | null
 
   // ── Anchors (optional) ────────────────────────────────────────────────────
   // Shapes that expose anchors can be connected to by connector shapes.
@@ -192,25 +215,26 @@ export interface ShapeDefinition<S extends BaseShape = BaseShape> {
 ```typescript
 import type { ShapeDefinition } from './_base/definition'
 import type { ShapeType } from '.'
-import { RectDefinition }     from './rect'
-import { CircleDefinition }   from './circle'
-import { EllipseDefinition }  from './ellipse'
+import { RectDefinition } from './rect'
+import { CircleDefinition } from './circle'
+import { EllipseDefinition } from './ellipse'
 import { TriangleDefinition } from './triangle'
-import { LineDefinition }     from './line'
+import { LineDefinition } from './line'
 
 // ShapeDefinition<any> is intentional: Renderer is contravariant on S,
 // so no common subtype exists. Generic code calls through the registry
 // without needing the concrete S.
 export const SHAPE_REGISTRY: Record<ShapeType, ShapeDefinition<any>> = {
-  rect:     RectDefinition,
-  circle:   CircleDefinition,
-  ellipse:  EllipseDefinition,
+  rect: RectDefinition,
+  circle: CircleDefinition,
+  ellipse: EllipseDefinition,
   triangle: TriangleDefinition,
-  line:     LineDefinition,
+  line: LineDefinition,
 }
 ```
 
 **Adding a new shape type** (e.g. `weld-fillet`):
+
 1. Create `src/shapes/weld-fillet/` with `types.ts`, `handles.ts`, `anchors.ts`, `index.ts`, `PropertiesPanel.tsx`
 2. Add `'weld-fillet'` to the `ShapeType` union in `src/shapes/index.ts`
 3. Register in `SHAPE_REGISTRY`
@@ -225,12 +249,11 @@ Nothing else changes. No switch-cases to update.
 ```typescript
 // src/store/types.ts
 
-type AllShapeGeometry =
-  Omit<RectShape,      'id' | 'type' | 'layerId'> &
-  Omit<CircleShape,    'id' | 'type' | 'layerId'> &
-  Omit<EllipseShape,   'id' | 'type' | 'layerId'> &
-  Omit<TriangleShape,  'id' | 'type' | 'layerId'> &
-  Omit<LineShape,      'id' | 'type' | 'layerId'>
+type AllShapeGeometry = Omit<RectShape, 'id' | 'type' | 'layerId'> &
+  Omit<CircleShape, 'id' | 'type' | 'layerId'> &
+  Omit<EllipseShape, 'id' | 'type' | 'layerId'> &
+  Omit<TriangleShape, 'id' | 'type' | 'layerId'> &
+  Omit<LineShape, 'id' | 'type' | 'layerId'>
 
 export type ShapeUpdate = Partial<AllShapeGeometry & { type: ShapeType }>
 ```
@@ -357,6 +380,7 @@ export function ShapeHandles({ shape }: { shape: Shape }) {
 ### Tablet and stylus specifics
 
 **Handle hit area**: The default rendered handle size of 5 px is too small for a finger or stylus tip. Use a transparent hit-area padding:
+
 - Detect touch capability with `navigator.maxTouchPoints > 0`
 - On touch devices: render 8 px visual, 20 px hit rect (`hitStrokeWidth` in Konva)
 - On mouse devices: render 5 px visual, 8 px hit rect
@@ -374,17 +398,18 @@ Anchors are optional per shape (`anchors?` in ShapeDefinition). When provided th
 ```typescript
 // src/shapes/rect/anchors.ts
 export function getRectAnchors(shape: RectShape): AnchorPoint[] {
-  const hw = shape.width / 2, hh = shape.height / 2
+  const hw = shape.width / 2,
+    hh = shape.height / 2
   return [
     { id: 'tl', x: -hw, y: -hh, direction: 315 },
-    { id: 'tc', x: 0,   y: -hh, direction: 270 },  // straight up — top face normal
-    { id: 'tr', x: hw,  y: -hh, direction: 45  },
-    { id: 'ml', x: -hw, y: 0,   direction: 180 },  // left face normal
-    { id: 'c',  x: 0,   y: 0                   },  // interior — no direction
-    { id: 'mr', x: hw,  y: 0,   direction: 0   },  // right face normal
-    { id: 'bl', x: -hw, y: hh,  direction: 225 },
-    { id: 'bc', x: 0,   y: hh,  direction: 90  },  // straight down — bottom face normal
-    { id: 'br', x: hw,  y: hh,  direction: 135 },
+    { id: 'tc', x: 0, y: -hh, direction: 270 }, // straight up — top face normal
+    { id: 'tr', x: hw, y: -hh, direction: 45 },
+    { id: 'ml', x: -hw, y: 0, direction: 180 }, // left face normal
+    { id: 'c', x: 0, y: 0 }, // interior — no direction
+    { id: 'mr', x: hw, y: 0, direction: 0 }, // right face normal
+    { id: 'bl', x: -hw, y: hh, direction: 225 },
+    { id: 'bc', x: 0, y: hh, direction: 90 }, // straight down — bottom face normal
+    { id: 'br', x: hw, y: hh, direction: 135 },
   ]
 }
 ```
@@ -446,27 +471,30 @@ interface ConnectionsSlice {
 }
 
 // Implementation sketch:
-updateConnectedShapes: (movedShapeId) => set((state) => {
-  const connectors = state.shapes.filter(
-    (s): s is ConnectorShape =>
-      isConnectorShape(s) &&
-      (s.connections.start?.shapeId === movedShapeId ||
-       s.connections.end?.shapeId   === movedShapeId)
-  )
-  if (!connectors.length) return {}
+updateConnectedShapes: (movedShapeId) =>
+  set((state) => {
+    const connectors = state.shapes.filter(
+      (s): s is ConnectorShape =>
+        isConnectorShape(s) &&
+        (s.connections.start?.shapeId === movedShapeId ||
+          s.connections.end?.shapeId === movedShapeId)
+    )
+    if (!connectors.length) return {}
 
-  const updatedShapes = state.shapes.map((s) => {
-    if (!connectors.some((c) => c.id === s.id)) return s
-    const c = s as ConnectorShape
-    const def = SHAPE_REGISTRY[s.type]
-    const startPt = c.connections.start
-      ? def.resolveConnection!(c.connections.start, state.shapes) : null
-    const endPt = c.connections.end
-      ? def.resolveConnection!(c.connections.end, state.shapes)   : null
-    return { ...s, ...recomputeConnectorGeometry(c, startPt, endPt) }
+    const updatedShapes = state.shapes.map((s) => {
+      if (!connectors.some((c) => c.id === s.id)) return s
+      const c = s as ConnectorShape
+      const def = SHAPE_REGISTRY[s.type]
+      const startPt = c.connections.start
+        ? def.resolveConnection!(c.connections.start, state.shapes)
+        : null
+      const endPt = c.connections.end
+        ? def.resolveConnection!(c.connections.end, state.shapes)
+        : null
+      return { ...s, ...recomputeConnectorGeometry(c, startPt, endPt) }
+    })
+    return { shapes: updatedShapes }
   })
-  return { shapes: updatedShapes }
-})
 ```
 
 ### Integration with store actions
@@ -507,9 +535,10 @@ export interface Layer {
 Layers are **metadata only**. Shapes carry `layerId?: string`. The store injects `activeLayerId` on `addShape`:
 
 ```typescript
-addShape: (shape) => set((s) => ({
-  shapes: [...s.shapes, { ...shape, layerId: shape.layerId ?? s.activeLayerId }],
-}))
+addShape: (shape) =>
+  set((s) => ({
+    shapes: [...s.shapes, { ...shape, layerId: shape.layerId ?? s.activeLayerId }],
+  }))
 ```
 
 This avoids nesting `shapes[]` inside `layers[]` — the flat shape array is easier to iterate for history, export, validation, and BOM extraction.
@@ -548,9 +577,9 @@ export interface HistoryEntry {
 }
 
 // store actions:
-commitShapeUpdate(id, before, after)   // push entry, apply `after`
-undo()                                 // apply entry.before
-redo()                                 // apply entry.after
+commitShapeUpdate(id, before, after) // push entry, apply `after`
+undo() // apply entry.before
+redo() // apply entry.after
 ```
 
 The pattern is **command-based with snapshots**: each entry is a before/after pair for a single shape. Multi-shape operations push one entry per shape. The store keeps a cursor (current index) into a flat array of entries.
@@ -567,7 +596,7 @@ The `PropertiesSidebar` renders the shape-specific panel through the registry:
 const { PropertiesPanel } = SHAPE_REGISTRY[shape.type]
 return (
   <div>
-    <PropertiesPanel shape={shape as never} />  {/* shape-specific fields */}
+    <PropertiesPanel shape={shape as never} /> {/* shape-specific fields */}
     {/* … shared opacity, fill, stroke controls below */}
   </div>
 )
@@ -641,7 +670,7 @@ interface DocumentSlice {
   documentName: string
   isSaving: boolean
   lastSavedAt: Date | null
-  isDirty: boolean        // true after any commitShapeUpdate, false after successful save
+  isDirty: boolean // true after any commitShapeUpdate, false after successful save
   saveDocument: () => Promise<void>
   loadDocument: (id: string) => Promise<void>
   createDocument: (name: string) => Promise<void>
@@ -651,6 +680,7 @@ interface DocumentSlice {
 The store operates locally (as now); `saveDocument` serializes via `documentCodec` and PATCHes the backend. Set `isDirty = true` on every `commitShapeUpdate`, `false` on successful save. Use debounced autosave triggered by the history cursor advancing.
 
 **Supabase schema**:
+
 ```sql
 CREATE TABLE documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -672,7 +702,7 @@ Domain apps often enforce geometric or semantic rules (e.g. "a fillet weld canno
 ```typescript
 interface ValidationViolation {
   shapeId: string
-  anchorId?: string     // if the violation is localized to a connection point
+  anchorId?: string // if the violation is localized to a connection point
   message: string
   severity: 'error' | 'warning'
 }
@@ -684,8 +714,8 @@ interface ValidationContext {
 
 interface ValidationSlice {
   violations: ValidationViolation[]
-  validateAll: () => void              // full re-validation after load
-  validateShape: (id: string) => void  // incremental, called after commitShapeUpdate
+  validateAll: () => void // full re-validation after load
+  validateShape: (id: string) => void // incremental, called after commitShapeUpdate
 }
 ```
 
@@ -699,8 +729,8 @@ Domain apps often provide a palette of pre-configured shapes (standard profile s
 interface LibraryItem {
   label: string
   category: string
-  create: (pos: Point) => Shape   // calls registry's create with preset properties
-  thumbnail: string               // SVG string or data URL for the palette tile
+  create: (pos: Point) => Shape // calls registry's create with preset properties
+  thumbnail: string // SVG string or data URL for the palette tile
 }
 ```
 
@@ -723,18 +753,18 @@ All internal values are stored in millimetres. `NumericField` receives a `unit` 
 
 ### Domain shapes to implement
 
-| ShapeType | Geometry | Key properties | Anchors |
-|---|---|---|---|
-| `profile-l` | L-profile cross-section | width, height, thickness | corners + face midpoints |
-| `profile-i` | I-beam cross-section | width, height, flangeThickness, webThickness | 8 face midpoints + centroid |
-| `profile-t` | T-profile | width, height, flangeThickness, webThickness | 5 face midpoints + centroid |
-| `plate` | Rect with thickness label | width, height, thickness | same as rect |
-| `pipe` | Circle/ellipse with wall | outerRadius, wallThickness | 4 cardinals + center |
-| `weld-fillet` | Triangle symbol + leg labels | leg1, leg2, angle | tip + base midpoints |
-| `weld-groove` | V/U/J groove symbol | angle, rootGap, depth | as needed |
-| `weld-spot` | Circle + X symbol | diameter | center |
-| `dimension` | Arrow + text | length, unit, precision | endpoints |
-| `note` | Text box | text, fontSize | corners |
+| ShapeType     | Geometry                     | Key properties                               | Anchors                     |
+| ------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
+| `profile-l`   | L-profile cross-section      | width, height, thickness                     | corners + face midpoints    |
+| `profile-i`   | I-beam cross-section         | width, height, flangeThickness, webThickness | 8 face midpoints + centroid |
+| `profile-t`   | T-profile                    | width, height, flangeThickness, webThickness | 5 face midpoints + centroid |
+| `plate`       | Rect with thickness label    | width, height, thickness                     | same as rect                |
+| `pipe`        | Circle/ellipse with wall     | outerRadius, wallThickness                   | 4 cardinals + center        |
+| `weld-fillet` | Triangle symbol + leg labels | leg1, leg2, angle                            | tip + base midpoints        |
+| `weld-groove` | V/U/J groove symbol          | angle, rootGap, depth                        | as needed                   |
+| `weld-spot`   | Circle + X symbol            | diameter                                     | center                      |
+| `dimension`   | Arrow + text                 | length, unit, precision                      | endpoints                   |
+| `note`        | Text box                     | text, fontSize                               | corners                     |
 
 Weld shapes (`weld-fillet`, `weld-groove`, `weld-spot`) are **connector shapes** — they extend `ConnectorShape` and implement `resolveConnection`.
 
@@ -768,16 +798,19 @@ Weld shapes (`weld-fillet`, `weld-groove`, `weld-spot`) are **connector shapes**
 ### Konva.js vs. SVG
 
 **Konva.js** (HTML5 Canvas) is the right choice for:
+
 - Large shape counts (200+) without layout performance issues
 - Visual effects (filters, drop shadows, custom compositing)
 - Desktop-first applications with keyboard-heavy interaction
 
 **Risks with Konva on tablet / stylus**:
+
 - HTML5 Canvas does not auto-scale for high-DPI. Konva handles this via `pixelRatio`, but interaction handles based on `mouse*` events can behave unpredictably — mitigated by using Pointer Events API + `setPointerCapture` (Section 8).
 - Konva hit detection is pixel-based, not DOM-based. There are no native accessible semantics. Screen reader support requires a separate ARIA-labelled DOM overlay if accessibility is required.
 - Test on a real Wacom tablet early — stylus jitter and hover behaviour differ from mouse.
 
 **When SVG would be the better choice**:
+
 - Accessibility is a hard requirement (screen readers can traverse SVG DOM natively)
 - SVG or DXF is the primary export deliverable (geometry is already described, no rasterisation)
 - The app is primarily used on a touch device where DOM-native pointer events are more reliable
@@ -834,6 +867,7 @@ Domain extensions (optional, per-app)
 ```
 
 **Adding a new shape type touches exactly four places**:
+
 1. `src/shapes/[new-type]/` — new directory (types, handles, anchors, index, PropertiesPanel)
 2. `src/shapes/index.ts` — one line added to `ShapeType` union
 3. `src/shapes/registry.ts` — one line added to `SHAPE_REGISTRY`

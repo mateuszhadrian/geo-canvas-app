@@ -9,7 +9,7 @@ export function LineRenderer({ shape, isSelected }: { shape: LineShape; isSelect
       {isSelected && (
         <Line
           points={shape.points}
-          stroke='#93c5fd'
+          stroke="#93c5fd"
           strokeWidth={Math.max(4, shape.strokeWidth + 4)}
           dash={shape.dash ? [8, 4] : []}
           listening={false}

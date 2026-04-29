@@ -1,5 +1,12 @@
 import type { RectShape } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
+import type {
+  HandleGeometry,
+  StartSnapshot,
+  FieldUpdate,
+  Point,
+  BoundingBox,
+  HandleKind,
+} from '../_base/types'
 
 interface RectStart extends StartSnapshot {
   width: number
@@ -7,7 +14,13 @@ interface RectStart extends StartSnapshot {
 }
 
 export function captureRectStart(shape: RectShape): StartSnapshot {
-  return { x: shape.x, y: shape.y, rotation: shape.rotation, width: shape.width, height: shape.height } as RectStart
+  return {
+    x: shape.x,
+    y: shape.y,
+    rotation: shape.rotation,
+    width: shape.width,
+    height: shape.height,
+  } as RectStart
 }
 
 export function getRectHandles(shape: RectShape): HandleGeometry {
@@ -33,7 +46,7 @@ export function applyRectHandleDrag(
   ldy: number,
   startLocalPtr: Point,
   sinθ: number,
-  cosθ: number,
+  cosθ: number
 ): FieldUpdate {
   const s = start as RectStart
   const sw = s.width
@@ -55,11 +68,11 @@ export function applyRectHandleDrag(
 
   if (kind === 'top') {
     out.height = Math.max(10, sh - ldy)
-    out.x = s.x + (ldy / 2) * (-sinθ)
+    out.x = s.x + (ldy / 2) * -sinθ
     out.y = s.y + (ldy / 2) * cosθ
   } else if (kind === 'bottom') {
     out.height = Math.max(10, sh + ldy)
-    out.x = s.x + (ldy / 2) * (-sinθ)
+    out.x = s.x + (ldy / 2) * -sinθ
     out.y = s.y + (ldy / 2) * cosθ
   } else if (kind === 'left') {
     out.width = Math.max(10, sw - ldx)
@@ -74,7 +87,13 @@ export function applyRectHandleDrag(
 }
 
 export function captureRectGeometry(shape: RectShape): FieldUpdate {
-  return { x: shape.x, y: shape.y, rotation: shape.rotation, width: shape.width, height: shape.height }
+  return {
+    x: shape.x,
+    y: shape.y,
+    rotation: shape.rotation,
+    width: shape.width,
+    height: shape.height,
+  }
 }
 
 export function getRectBoundingBox(shape: RectShape): BoundingBox {
@@ -88,8 +107,10 @@ export function getRectBoundingBox(shape: RectShape): BoundingBox {
 
 export function getRectWorldPoints(shape: RectShape): Point[] {
   const θ = shape.rotation * (Math.PI / 180)
-  const cosθ = Math.cos(θ), sinθ = Math.sin(θ)
-  const hw = shape.width / 2, hh = shape.height / 2
+  const cosθ = Math.cos(θ),
+    sinθ = Math.sin(θ)
+  const hw = shape.width / 2,
+    hh = shape.height / 2
   const w = (lx: number, ly: number): Point => ({
     x: shape.x + lx * cosθ - ly * sinθ,
     y: shape.y + lx * sinθ + ly * cosθ,

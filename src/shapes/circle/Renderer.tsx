@@ -16,7 +16,7 @@ export function CircleRenderer({ shape, isSelected }: { shape: CircleShape; isSe
         <Circle
           radius={Math.max(1, shape.radius - 1)}
           fillEnabled={false}
-          stroke='#93c5fd'
+          stroke="#93c5fd"
           strokeWidth={2}
           listening={false}
           hitStrokeWidth={0}

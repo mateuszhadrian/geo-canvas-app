@@ -24,8 +24,8 @@ export function AnchorPoints({ anchors }: Props) {
           sides={4}
           radius={ANCHOR_R}
           rotation={45}
-          fill='#22c55e'
-          stroke='#15803d'
+          fill="#22c55e"
+          stroke="#15803d"
           strokeWidth={1}
           opacity={0.85}
           listening={false}

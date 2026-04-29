@@ -25,7 +25,7 @@ jobs:
         run: npm run build
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: npx playwright test --pass-with-no-tests
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

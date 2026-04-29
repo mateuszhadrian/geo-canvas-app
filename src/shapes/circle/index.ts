@@ -5,8 +5,12 @@ import { createCircle } from './factory'
 import { CircleRenderer } from './Renderer'
 import { CirclePropertiesPanel } from './PropertiesPanel'
 import {
-  captureCircleStart, getCircleHandles, applyCircleHandleDrag,
-  captureCircleGeometry, getCircleBoundingBox, getCircleWorldPoints,
+  captureCircleStart,
+  getCircleHandles,
+  applyCircleHandleDrag,
+  captureCircleGeometry,
+  getCircleBoundingBox,
+  getCircleWorldPoints,
 } from './handles'
 import { getCircleAnchors } from './anchors'
 

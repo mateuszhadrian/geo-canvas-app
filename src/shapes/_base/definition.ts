@@ -1,7 +1,14 @@
 import type { ComponentType } from 'react'
 import type {
-  BaseShape, ShapeType, Point, BoundingBox,
-  HandleGeometry, AnchorPoint, StartSnapshot, FieldUpdate, HandleKind,
+  BaseShape,
+  ShapeType,
+  Point,
+  BoundingBox,
+  HandleGeometry,
+  AnchorPoint,
+  StartSnapshot,
+  FieldUpdate,
+  HandleKind,
 } from './types'
 
 export interface ShapeDefinition<S extends BaseShape = BaseShape> {
@@ -25,15 +32,17 @@ export interface ShapeDefinition<S extends BaseShape = BaseShape> {
   // Null for shapes that use a custom handle component (e.g. line → MultiLineHandles).
   getHandles: ((shape: S) => HandleGeometry) | null
   captureStart: ((shape: S) => StartSnapshot) | null
-  applyHandleDrag: ((
-    start: StartSnapshot,
-    kind: HandleKind,
-    ldx: number,
-    ldy: number,
-    startLocalPtr: Point,
-    sinθ: number,
-    cosθ: number,
-  ) => FieldUpdate) | null
+  applyHandleDrag:
+    | ((
+        start: StartSnapshot,
+        kind: HandleKind,
+        ldx: number,
+        ldy: number,
+        startLocalPtr: Point,
+        sinθ: number,
+        cosθ: number
+      ) => FieldUpdate)
+    | null
 
   // ── Anchor points ─────────────────────────────────────────────────────────
   // LOCAL coords (relative to shape center). Used for connector attachments.

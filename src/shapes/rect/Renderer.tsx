@@ -25,7 +25,7 @@ export function RectRenderer({ shape, isSelected }: { shape: RectShape; isSelect
           offsetX={ow / 2}
           offsetY={oh / 2}
           fillEnabled={false}
-          stroke='#93c5fd'
+          stroke="#93c5fd"
           strokeWidth={2}
           listening={false}
           hitStrokeWidth={0}

@@ -23,26 +23,46 @@ function setupStoreMock() {
 }
 
 const RECT_SHAPE = {
-  id: 'rect-1', type: 'rect', x: 100, y: 100,
-  width: 100, height: 70, fill: '#4A90D9', cornerRadius: 0,
-  rotation: 0, opacity: 1, stroke: '#333333', strokeWidth: 2,
+  id: 'rect-1',
+  type: 'rect',
+  x: 100,
+  y: 100,
+  width: 100,
+  height: 70,
+  fill: '#4A90D9',
+  cornerRadius: 0,
+  rotation: 0,
+  opacity: 1,
+  stroke: '#333333',
+  strokeWidth: 2,
 }
 
 const VALID_BARE_ARRAY = JSON.stringify([RECT_SHAPE])
 
 const VALID_FULL_DOC = JSON.stringify({
   meta: {
-    schemaVersion: '1.0.0', id: 'test', name: 'Test',
-    createdAt: '2026-04-28T00:00:00.000Z', updatedAt: '2026-04-28T00:00:00.000Z',
+    schemaVersion: '1.0.0',
+    id: 'test',
+    name: 'Test',
+    createdAt: '2026-04-28T00:00:00.000Z',
+    updatedAt: '2026-04-28T00:00:00.000Z',
   },
   canvas: {
-    background: '#ffffff', width: 2000, height: 1414,
+    background: '#ffffff',
+    width: 2000,
+    height: 1414,
     grid: { visible: true, size: 20, color: '#e5e7eb', snapEnabled: false, snapThreshold: 8 },
   },
-  layers: [{
-    id: 'layer_default', name: 'Layer 1', visible: true, locked: false, opacity: 1,
-    shapes: [RECT_SHAPE],
-  }],
+  layers: [
+    {
+      id: 'layer_default',
+      name: 'Layer 1',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      shapes: [RECT_SHAPE],
+    },
+  ],
   stickyDefaults: {},
 })
 
@@ -120,7 +140,9 @@ describe('JI-003: invalid JSON + Enter → error state, canvas unchanged', () =>
     const textarea = screen.getByRole('textbox')
     expect(textarea.style.border).toContain('#ef4444')
 
-    act(() => { jest.advanceTimersByTime(700) })
+    act(() => {
+      jest.advanceTimersByTime(700)
+    })
 
     expect(textarea).toHaveValue('')
   })

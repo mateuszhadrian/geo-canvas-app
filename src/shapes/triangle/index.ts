@@ -5,8 +5,12 @@ import { createTriangle } from './factory'
 import { TriangleRenderer } from './Renderer'
 import { TrianglePropertiesPanel } from './PropertiesPanel'
 import {
-  captureTriangleStart, getTriangleHandles, applyTriangleHandleDrag,
-  captureTriangleGeometry, getTriangleBoundingBox, getTriangleWorldPoints,
+  captureTriangleStart,
+  getTriangleHandles,
+  applyTriangleHandleDrag,
+  captureTriangleGeometry,
+  getTriangleBoundingBox,
+  getTriangleWorldPoints,
 } from './handles'
 import { getTriangleAnchors } from './anchors'
 

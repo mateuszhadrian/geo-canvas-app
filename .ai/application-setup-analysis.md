@@ -63,7 +63,7 @@ export default nextConfig
 TailwindCSS v4 używa konfiguracji CSS-first. Brak `tailwind.config.js`. Struktura pliku:
 
 ```css
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   /* Kolory marki GeoCanvas — opcjonalne rozszerzenie */
@@ -74,6 +74,7 @@ TailwindCSS v4 używa konfiguracji CSS-first. Brak `tailwind.config.js`. Struktu
 ```
 
 **Krytyczna różnica vs v3:**
+
 - v3: `@tailwind base; @tailwind components; @tailwind utilities;`
 - v4: `@import "tailwindcss";` — jednolinijkowy import
 - v4: Brak `tailwind.config.js` — customizacja przez `@theme` w CSS
@@ -92,16 +93,9 @@ module.exports = createJestConfig({
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testMatch: [
-    '<rootDir>/tests/unit/**/*.test.ts',
-    '<rootDir>/tests/unit/**/*.test.tsx',
-  ],
+  testMatch: ['<rootDir>/tests/unit/**/*.test.ts', '<rootDir>/tests/unit/**/*.test.tsx'],
   coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/app/layout.tsx',
-  ],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/app/layout.tsx'],
 })
 ```
 
@@ -127,9 +121,7 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',
@@ -475,6 +467,7 @@ export interface RectShape extends BaseShape {
 ```
 
 **Uzasadnienie:**
+
 - Node 22 (`Jod`) to aktualny **Active LTS** (Long Term Support) od października 2024
 - Spełnia wymaganie `>=20.9.0` z marginesem
 - Stabilny, powszechnie używany w CI/CD
@@ -482,13 +475,16 @@ export interface RectShape extends BaseShape {
 - System z Node 25.9.0 może nadal uruchamiać projekt na wersji 22 przez nvm (`nvm use`)
 
 **Dlaczego nie Node 20:**
+
 - Node 20 wchodzi w fazę Maintenance LTS (mniej aktualizacji), a Node 22 jest aktualnym Active LTS
 
 **Dlaczego nie Node 24/25:**
+
 - Node 24 to nowy Active LTS (od kwietnia 2026), ale mniej sprawdzony w ekosystemie CI
 - Node 25 jest unstable — nie do użytku w produkcji ani CI
 
 **Dlaczego nie bieżąca wersja systemowa (25.9.0):**
+
 - Wersje nieparzyste Node.js (23, 25) to wersje deweloperskie bez gwarancji kompatybilności wstecznej między patchami
 - Używanie wersji unstable w CI to zła praktyka
 
@@ -673,25 +669,25 @@ npm test          # Musi wykonać się (0 testów = OK na starcie)
 
 ## 8. Podsumowanie — lista plików do stworzenia przy inicjalizacji
 
-| Plik | Źródło | Uwagi |
-|---|---|---|
-| `tsconfig.json` | `create-next-app` + modyfikacja | Dodać `"strict": true`, alias `@/*` |
-| `next.config.ts` | `create-next-app` | Zostawić minimalny |
-| `src/app/globals.css` | Ręcznie | TailwindCSS v4: `@import "tailwindcss"` |
-| `src/app/layout.tsx` | `create-next-app` + modyfikacja | Meta tagi (REQ-064), `lang="en"` |
-| `src/app/page.tsx` | Ręcznie | `dynamic(() => import(CanvasApp), { ssr: false })` |
-| `jest.config.js` | Ręcznie | `next/jest` transformer |
-| `jest.setup.ts` | Ręcznie | `jest-canvas-mock` + `@testing-library/jest-dom` |
-| `playwright.config.ts` | Ręcznie | baseURL + webServer |
-| `.nvmrc` | Ręcznie | `22` |
-| `.eslintrc.json` | `create-next-app` | Domyślne + `next/typescript` |
-| `.prettierrc` | Ręcznie | Opcjonalne, zalecane |
-| `public/favicon.svg` | Ręcznie | REQ-063: geometryczny motyw |
-| `.github/workflows/ci.yml` | Ręcznie | lint + typecheck + testy jednostkowe |
-| `.github/workflows/e2e.yml` | Ręcznie | Playwright, tylko na PR |
-| `.vscode/settings.json` | Ręcznie | Cursor + VS Code: format on save, ESLint, TS SDK |
-| `.cursorignore` | Ręcznie | Wyklucza node_modules/.next z indeksu AI Cursora |
-| `postcss.config.mjs` | Modyfikacja | `@tailwindcss/postcss` plugin |
+| Plik                        | Źródło                          | Uwagi                                              |
+| --------------------------- | ------------------------------- | -------------------------------------------------- |
+| `tsconfig.json`             | `create-next-app` + modyfikacja | Dodać `"strict": true`, alias `@/*`                |
+| `next.config.ts`            | `create-next-app`               | Zostawić minimalny                                 |
+| `src/app/globals.css`       | Ręcznie                         | TailwindCSS v4: `@import "tailwindcss"`            |
+| `src/app/layout.tsx`        | `create-next-app` + modyfikacja | Meta tagi (REQ-064), `lang="en"`                   |
+| `src/app/page.tsx`          | Ręcznie                         | `dynamic(() => import(CanvasApp), { ssr: false })` |
+| `jest.config.js`            | Ręcznie                         | `next/jest` transformer                            |
+| `jest.setup.ts`             | Ręcznie                         | `jest-canvas-mock` + `@testing-library/jest-dom`   |
+| `playwright.config.ts`      | Ręcznie                         | baseURL + webServer                                |
+| `.nvmrc`                    | Ręcznie                         | `22`                                               |
+| `.eslintrc.json`            | `create-next-app`               | Domyślne + `next/typescript`                       |
+| `.prettierrc`               | Ręcznie                         | Opcjonalne, zalecane                               |
+| `public/favicon.svg`        | Ręcznie                         | REQ-063: geometryczny motyw                        |
+| `.github/workflows/ci.yml`  | Ręcznie                         | lint + typecheck + testy jednostkowe               |
+| `.github/workflows/e2e.yml` | Ręcznie                         | Playwright, tylko na PR                            |
+| `.vscode/settings.json`     | Ręcznie                         | Cursor + VS Code: format on save, ESLint, TS SDK   |
+| `.cursorignore`             | Ręcznie                         | Wyklucza node_modules/.next z indeksu AI Cursora   |
+| `postcss.config.mjs`        | Modyfikacja                     | `@tailwindcss/postcss` plugin                      |
 
 ### Plik `postcss.config.mjs` dla TailwindCSS v4
 

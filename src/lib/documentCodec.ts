@@ -1,9 +1,5 @@
 import { generateId } from './generateId'
-import {
-  SCHEMA_VERSION,
-  DEFAULT_CANVAS_SETTINGS,
-  DEFAULT_LAYER_META,
-} from './document'
+import { SCHEMA_VERSION, DEFAULT_CANVAS_SETTINGS, DEFAULT_LAYER_META } from './document'
 import type { CanvasDocument, DocumentLayer, DocumentMeta } from './document'
 import type { Shape, ShapeType, ShapeProperties } from '@/shapes'
 import type { Layer } from '@/store/slices/layers'

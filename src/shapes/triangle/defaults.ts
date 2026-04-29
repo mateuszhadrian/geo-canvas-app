@@ -11,8 +11,11 @@ export const TRIANGLE_DEFAULTS: Omit<TriangleShape, 'id' | 'x' | 'y'> = {
   type: 'triangle',
   fill: '#27AE60',
   vertices: [
-    0,          -R,            // V0 — top
-    R * SIN60,   R / 2,        // V1 — bottom-right
-    -R * SIN60,  R / 2,        // V2 — bottom-left
+    0,
+    -R, // V0 — top
+    R * SIN60,
+    R / 2, // V1 — bottom-right
+    -R * SIN60,
+    R / 2, // V2 — bottom-left
   ],
 }

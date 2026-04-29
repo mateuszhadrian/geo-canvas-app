@@ -12,18 +12,23 @@ export function useMultilineDrawing(): {
 
   const multilineFirstLineId = useMemo(() => {
     const selectedLines = shapes.filter(
-      (s): s is LineShape => s.type === 'line' && selectedShapeIds.includes(s.id),
+      (s): s is LineShape => s.type === 'line' && selectedShapeIds.includes(s.id)
     )
     if (selectedLines.length < 2) return null
     return selectedLines[0].id
   }, [shapes, selectedShapeIds])
 
   const tryExtendOrClose = useCallback((clickX: number, clickY: number): boolean => {
-    const { selectedShapeIds: ids, shapes: allShapes, addShape, setSelectedShapeIds, canvasScale } =
-      useCanvasStore.getState()
+    const {
+      selectedShapeIds: ids,
+      shapes: allShapes,
+      addShape,
+      setSelectedShapeIds,
+      canvasScale,
+    } = useCanvasStore.getState()
 
     const selectedLines = allShapes.filter(
-      (s): s is LineShape => s.type === 'line' && ids.includes(s.id),
+      (s): s is LineShape => s.type === 'line' && ids.includes(s.id)
     )
     if (selectedLines.length === 0) return false
 

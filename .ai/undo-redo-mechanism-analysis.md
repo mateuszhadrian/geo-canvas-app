@@ -7,14 +7,14 @@
 
 ## 0. TL;DR — szybka decyzja
 
-| Pytanie | Odpowiedź |
-|---|---|
-| Czy używać `zundo`? | **Nie** — zundo jest snapshot-based i nie nadaje się do późniejszej bazy ani kolaboracji |
-| Ile opcji warto rozważyć? | **3** — snapshot, command pattern, diff-based |
-| Rekomendacja | **Command Pattern** (custom history slice w Zustand) |
-| Nakład na MVP | **~1–1,5 dnia** pracy |
-| Gotowość na bazę danych? | **Tak** — komendy są JSON-serializowalne i gotowe do zapisu w Supabase |
-| Gotowość na kolaborację? | **Tak** — komendy są OT-friendly i można je przesyłać przez Supabase Realtime |
+| Pytanie                   | Odpowiedź                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| Czy używać `zundo`?       | **Nie** — zundo jest snapshot-based i nie nadaje się do późniejszej bazy ani kolaboracji |
+| Ile opcji warto rozważyć? | **3** — snapshot, command pattern, diff-based                                            |
+| Rekomendacja              | **Command Pattern** (custom history slice w Zustand)                                     |
+| Nakład na MVP             | **~1–1,5 dnia** pracy                                                                    |
+| Gotowość na bazę danych?  | **Tak** — komendy są JSON-serializowalne i gotowe do zapisu w Supabase                   |
+| Gotowość na kolaborację?  | **Tak** — komendy są OT-friendly i można je przesyłać przez Supabase Realtime            |
 
 ---
 
@@ -48,12 +48,14 @@ historia: [ [S1], [S1, S2], [S1, S2 (zmod)], ... ]
 PRD przewiduje `zundo` (temporal middleware) jako gotową bibliotekę implementującą tę opcję.
 
 **Zalety:**
+
 - Prosta w rozumieniu i implementacji
 - `zundo` to gotowa biblioteka — integracja to kilka linii kodu
 - Przywracanie stanu to jedno wywołanie `setShapes(snapshot)`
 - Naturalne wsparcie dla `partialize` (śledź tylko `shapes`, nie viewport)
 
 **Wady:**
+
 - **Brak semantyki**: historia mówi tylko "jakie kształty były", nie "co zostało zmienione" — przy debugowaniu i DB-sync to poważne ograniczenie
 - **Rozmiar w pamięci**: 200 kształtów × ~150 bajtów/kształt = ~30 KB/snapshot × 50 kroków = ~1,5 MB tylko na historię (akceptowalne, ale rosłoby z rozbudową kształtów)
 - **Baza danych**: każda aktualizacja jednego pola (np. zmiana koloru) powoduje zapis całego snapshotu — dużo redundancji
@@ -78,6 +80,7 @@ PRD przewiduje `zundo` (temporal middleware) jako gotową bibliotekę implementu
 `undo` = zastosuj odwrotność komendy; `redo` = zastosuj komendę ponownie.
 
 **Zalety:**
+
 - **Semantyczna historia**: każda komenda opisuje intencję ("dodano kształt", "przesunięto 3 kształty") — audit trail gotowy
 - **Wydajna pamięć**: komenda dla przesunięcia 200 kształtów to lista 200 `{id, before, after}` — kilka KB zamiast 30 KB snapshotu
 - **Baza danych**: zapis komendy = jeden mały JSON-owy event; przechowywanie historii w Supabase jest tanie i naturalne
@@ -87,6 +90,7 @@ PRD przewiduje `zundo` (temporal middleware) jako gotową bibliotekę implementu
 - **Naturalnie JSON-serializowalna** — gotowa do przesłania do bazy bez transformacji
 
 **Wady:**
+
 - **Więcej kodu**: każda operacja musi przechwycić `before` i `after` — ok. 50–80 linii więcej niż zundo
 - **Obsługa przed/po**: dla `removeShapes` trzeba pobrać kształty przed usunięciem; dla `updateShape` trzeba pobrać aktualny stan przed mutacją
 - **Testowanie**: komendy wymagają testów jednostkowych
@@ -107,10 +111,12 @@ PRD przewiduje `zundo` (temporal middleware) jako gotową bibliotekę implementu
 ```
 
 **Zalety:**
+
 - Mniejsze od snapshotów, standaryzowany format (RFC 6902)
 - Można stosować biblioteki `fast-json-patch` lub podobne
 
 **Wady:**
+
 - **Bez semantyki**: diff mówi "co się zmieniło w JSON", ale nie "dlaczego" — brak audit trail
 - **Złożone odwracanie**: żeby cofnąć diff, trzeba wyliczyć reverse-patch — można to zrobić, ale to dodatkowa warstwa złożoności
 - **Indeksowanie tablicy**: JSON Patch używa indeksów (`/shapes/0/x`); gdy kształty zmieniają kolejność, indeksy się przesuwają — trzeba obsługiwać ID-based lookup
@@ -123,17 +129,17 @@ PRD przewiduje `zundo` (temporal middleware) jako gotową bibliotekę implementu
 
 ## 3. Tabela porównawcza
 
-| Kryterium | Snapshot (zundo) | **Command Pattern** | Diff-based |
-|---|:---:|:---:|:---:|
-| Łatwość implementacji MVP | ✅ Bardzo łatwa | ⚠️ Umiarkowana | ⚠️ Umiarkowana |
-| Pamięć (200 kształtów × 50) | ⚠️ ~1,5 MB | ✅ ~50–200 KB | ✅ ~100–300 KB |
-| Semantyczna historia / audit trail | ❌ Brak | ✅ Pełna | ❌ Brak |
-| Gotowość na Supabase | ⚠️ Ciężkie snapshoty | ✅ Lekkie eventy | ⚠️ Brak semantyki |
-| Cross-device undo/redo | ❌ Trudne | ✅ Naturalne | ❌ Trudne |
-| Gotowość na OT/kolaborację | ❌ Blokada | ✅ Naturalna | ⚠️ Trudna |
-| Konflikt detection | ⚠️ Wersja projektu | ✅ Per-komenda | ⚠️ Wersja projektu |
-| Integracja z istniejącym kodem | ✅ Minimalna (middleware) | ⚠️ Wymaga augmentacji akcji | ⚠️ Wymaga wrappera |
-| Testy | Mniej potrzebne | Więcej (ale izolowane) | Więcej |
+| Kryterium                          |     Snapshot (zundo)      |     **Command Pattern**     |     Diff-based     |
+| ---------------------------------- | :-----------------------: | :-------------------------: | :----------------: |
+| Łatwość implementacji MVP          |      ✅ Bardzo łatwa      |       ⚠️ Umiarkowana        |   ⚠️ Umiarkowana   |
+| Pamięć (200 kształtów × 50)        |        ⚠️ ~1,5 MB         |        ✅ ~50–200 KB        |   ✅ ~100–300 KB   |
+| Semantyczna historia / audit trail |          ❌ Brak          |          ✅ Pełna           |      ❌ Brak       |
+| Gotowość na Supabase               |   ⚠️ Ciężkie snapshoty    |      ✅ Lekkie eventy       | ⚠️ Brak semantyki  |
+| Cross-device undo/redo             |         ❌ Trudne         |        ✅ Naturalne         |     ❌ Trudne      |
+| Gotowość na OT/kolaborację         |        ❌ Blokada         |        ✅ Naturalna         |     ⚠️ Trudna      |
+| Konflikt detection                 |    ⚠️ Wersja projektu     |       ✅ Per-komenda        | ⚠️ Wersja projektu |
+| Integracja z istniejącym kodem     | ✅ Minimalna (middleware) | ⚠️ Wymaga augmentacji akcji | ⚠️ Wymaga wrappera |
+| Testy                              |      Mniej potrzebne      |   Więcej (ale izolowane)    |       Więcej       |
 
 **Rekomendacja: Command Pattern** — jedyna opcja przygotowana na wszystkie 3 fazy: MVP, baza danych, kolaboracja.
 
@@ -154,17 +160,17 @@ import type { ShapeUpdate } from '@/store/types'
 export type HistoryCommand =
   | {
       type: 'ADD_SHAPE'
-      shape: Shape  // wystarczy shape — undo = usuń shape.id
+      shape: Shape // wystarczy shape — undo = usuń shape.id
     }
   | {
       type: 'REMOVE_SHAPES'
-      shapes: Shape[]  // pełne kształty — undo = przywróć wszystkie
+      shapes: Shape[] // pełne kształty — undo = przywróć wszystkie
     }
   | {
       type: 'UPDATE_SHAPE'
       id: string
-      before: ShapeUpdate  // stan przed zmianą
-      after: ShapeUpdate   // stan po zmianie
+      before: ShapeUpdate // stan przed zmianą
+      after: ShapeUpdate // stan po zmianie
     }
   | {
       type: 'UPDATE_SHAPES'
@@ -175,7 +181,7 @@ export type HistoryCommand =
       }>
     }
   | {
-      type: 'SET_SHAPES'  // dla import JSON / clear scene
+      type: 'SET_SHAPES' // dla import JSON / clear scene
       before: Shape[]
       after: Shape[]
     }
@@ -189,10 +195,10 @@ Nowy slice dodawany do istniejącego `CanvasStore`:
 // src/store/slices/history.ts
 
 export interface HistorySlice {
-  _past: HistoryCommand[]   // max 50, indeks 0 = najstarszy
+  _past: HistoryCommand[] // max 50, indeks 0 = najstarszy
   _future: HistoryCommand[]
-  canUndo: boolean          // derived: _past.length > 0
-  canRedo: boolean          // derived: _future.length > 0
+  canUndo: boolean // derived: _past.length > 0
+  canRedo: boolean // derived: _future.length > 0
   pushHistory: (command: HistoryCommand) => void
   undo: () => void
   redo: () => void
@@ -205,31 +211,34 @@ Implementacja (pseudokod ilustracyjny — właściwy kod piszemy przy implementa
 ```typescript
 // pseudokod — ilustracja logiki
 
-pushHistory: (command) => set(state => {
-  state._past.push(command)
-  if (state._past.length > 50) state._past.shift()  // FIFO, max 50
-  state._future = []  // nowa akcja czyści redo stack
-  state.canUndo = true
-  state.canRedo = false
-})
+pushHistory: (command) =>
+  set((state) => {
+    state._past.push(command)
+    if (state._past.length > 50) state._past.shift() // FIFO, max 50
+    state._future = [] // nowa akcja czyści redo stack
+    state.canUndo = true
+    state.canRedo = false
+  })
 
-undo: () => set(state => {
-  const command = state._past.pop()
-  if (!command) return
-  applyInverse(state, command)  // odwróć komendę
-  state._future.unshift(command)
-  state.canUndo = state._past.length > 0
-  state.canRedo = true
-})
+undo: () =>
+  set((state) => {
+    const command = state._past.pop()
+    if (!command) return
+    applyInverse(state, command) // odwróć komendę
+    state._future.unshift(command)
+    state.canUndo = state._past.length > 0
+    state.canRedo = true
+  })
 
-redo: () => set(state => {
-  const command = state._future.shift()
-  if (!command) return
-  applyForward(state, command)  // zastosuj komendę
-  state._past.push(command)
-  state.canUndo = true
-  state.canRedo = state._future.length > 0
-})
+redo: () =>
+  set((state) => {
+    const command = state._future.shift()
+    if (!command) return
+    applyForward(state, command) // zastosuj komendę
+    state._past.push(command)
+    state.canUndo = true
+    state.canRedo = state._future.length > 0
+  })
 ```
 
 ### 4.3 Funkcje applyForward / applyInverse
@@ -241,16 +250,16 @@ function applyForward(state: CanvasStore, command: HistoryCommand) {
       state.shapes.push(command.shape)
       break
     case 'REMOVE_SHAPES':
-      const ids = new Set(command.shapes.map(s => s.id))
-      state.shapes = state.shapes.filter(s => !ids.has(s.id))
+      const ids = new Set(command.shapes.map((s) => s.id))
+      state.shapes = state.shapes.filter((s) => !ids.has(s.id))
       break
     case 'UPDATE_SHAPE':
-      const shape = state.shapes.find(s => s.id === command.id)
+      const shape = state.shapes.find((s) => s.id === command.id)
       if (shape) Object.assign(shape, command.after)
       break
     case 'UPDATE_SHAPES':
       command.updates.forEach(({ id, after }) => {
-        const s = state.shapes.find(s => s.id === id)
+        const s = state.shapes.find((s) => s.id === id)
         if (s) Object.assign(s, after)
       })
       break
@@ -263,18 +272,18 @@ function applyForward(state: CanvasStore, command: HistoryCommand) {
 function applyInverse(state: CanvasStore, command: HistoryCommand) {
   switch (command.type) {
     case 'ADD_SHAPE':
-      state.shapes = state.shapes.filter(s => s.id !== command.shape.id)
+      state.shapes = state.shapes.filter((s) => s.id !== command.shape.id)
       break
     case 'REMOVE_SHAPES':
-      state.shapes.push(...command.shapes)  // przywróć usunięte
+      state.shapes.push(...command.shapes) // przywróć usunięte
       break
     case 'UPDATE_SHAPE':
-      const shape = state.shapes.find(s => s.id === command.id)
+      const shape = state.shapes.find((s) => s.id === command.id)
       if (shape) Object.assign(shape, command.before)
       break
     case 'UPDATE_SHAPES':
       command.updates.forEach(({ id, before }) => {
-        const s = state.shapes.find(s => s.id === id)
+        const s = state.shapes.find((s) => s.id === id)
         if (s) Object.assign(s, before)
       })
       break
@@ -331,11 +340,11 @@ Jedyna potrzebna zmiana: w `onDragEnd` użyć `updateShapes` zamiast wielokrotne
 
 ```typescript
 // onDragEnd — zamiast wielu updateShape() wywołać jeden:
-const updates = ids.map(id => {
+const updates = ids.map((id) => {
   const s = dragStartPositions.current.get(id)
   return { id, before: { x: s.x, y: s.y }, after: { x: s.x + delta.x, y: s.y + delta.y } }
 })
-executeUpdateShapes(updates)  // jedna komenda UPDATE_SHAPES
+executeUpdateShapes(updates) // jedna komenda UPDATE_SHAPES
 ```
 
 #### Pola tekstowe w Properties Panel (jeszcze nie zaimplementowane)
@@ -390,22 +399,26 @@ Warto też zablokować domyślne `undo` przeglądarki na canvasie, bo może wcho
 Kolejność minimalizuje ryzyko regresji:
 
 ### Etap 1 — Typy i core logika (bez UI)
+
 1. Stwórz `src/store/history/types.ts` z definicją `HistoryCommand`
 2. Stwórz `src/store/slices/history.ts` z interfejsem i implementacją slice
 3. Dodaj `applyForward` / `applyInverse` do slice
 4. Zintegruj history slice z `use-canvas-store.ts`
 
 ### Etap 2 — Augmentacja istniejących akcji
+
 5. Zmodyfikuj `addShape` — dodaj `pushHistory`
 6. Zmodyfikuj `removeShape` i `removeShapes` — przechwytuj `before`, dodaj `pushHistory`
 7. Zmodyfikuj `updateShape` — przechwytuj `before`, dodaj `pushHistory`
 8. Dodaj `updateShapes` (batch) — potrzebne dla drag wielu kształtów
 
 ### Etap 3 — Integracja z istniejącymi komponentami
+
 9. Zmodyfikuj `ShapeNode.tsx` `onDragEnd` — użyj `updateShapes` zamiast pętli `updateShape`
 10. Dodaj skróty klawiaturowe w `CanvasApp.tsx`
 
 ### Etap 4 — Testy
+
 11. Testy jednostkowe `applyForward` / `applyInverse` dla każdego typu komendy
 12. Testy `pushHistory` — limit 50, czyszczenie redo stack
 
@@ -483,8 +496,11 @@ clearHistory()                         ← czysta historia (nowa sesja)
 // (niezależnie od DB)
 useEffect(() => {
   const state = { shapes, version: localVersion }
-  try { localStorage.setItem(`geocanvas:${projectId}`, JSON.stringify(state)) }
-  catch (e) { /* quota exceeded — ignoruj, toast w UI */ }
+  try {
+    localStorage.setItem(`geocanvas:${projectId}`, JSON.stringify(state))
+  } catch (e) {
+    /* quota exceeded — ignoruj, toast w UI */
+  }
 }, [shapes])
 ```
 
@@ -503,17 +519,17 @@ Każdy projekt ma `version: integer`. Przed zapisem:
 ```typescript
 async function saveProject(localDoc: CanvasDocument, localVersion: number) {
   const serverVersion = await fetchProjectVersion(projectId)
-  
+
   if (serverVersion > sessionStartVersion) {
     // Ktoś zapisał po tym jak my zaczęliśmy sesję
     showConflictWarning({
       message: 'Ten projekt był zmodyfikowany na innym urządzeniu. Zapis nadpisze tamte zmiany.',
       onConfirm: () => forceSave(localDoc, localVersion),
-      onCancel: () => reloadFromServer()
+      onCancel: () => reloadFromServer(),
     })
     return
   }
-  
+
   await forceSave(localDoc, localVersion)
 }
 ```
@@ -551,23 +567,28 @@ Komend Pattern jest naturalnie OT-friendly (Operational Transformation). Oto jak
 // Subskrypcja na komendy innych użytkowników
 supabase
   .channel(`project:${projectId}`)
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'project_history',
-    filter: `project_id=eq.${projectId}`,
-  }, (payload) => {
-    const command: HistoryCommand = payload.new.command
-    if (payload.new.session_id !== localSessionId) {
-      applyRemoteCommand(command)  // zastosuj komendę innego użytkownika
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'project_history',
+      filter: `project_id=eq.${projectId}`,
+    },
+    (payload) => {
+      const command: HistoryCommand = payload.new.command
+      if (payload.new.session_id !== localSessionId) {
+        applyRemoteCommand(command) // zastosuj komendę innego użytkownika
+      }
     }
-  })
+  )
   .subscribe()
 ```
 
 ### 8.2 Dlaczego komendy się komponują
 
 Gdy użytkownik A przesuwa kształt `X`, a użytkownik B zmienia kolor kształtu `Y`:
+
 - Komenda A: `UPDATE_SHAPE { id: 'X', before: {x:100}, after: {x:200} }`
 - Komenda B: `UPDATE_SHAPE { id: 'Y', before: {fill:'red'}, after: {fill:'blue'} }`
 

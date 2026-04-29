@@ -1,4 +1,8 @@
-import { applyCircleHandleDrag, captureCircleStart, getCircleBoundingBox } from '@/shapes/circle/handles'
+import {
+  applyCircleHandleDrag,
+  captureCircleStart,
+  getCircleBoundingBox,
+} from '@/shapes/circle/handles'
 import { buildCircle } from '../../helpers/buildShape'
 import type { HandleKind } from '@/shapes/_base/types'
 
@@ -10,7 +14,7 @@ function drag(
   kind: HandleKind,
   ldx: number,
   ldy: number,
-  startLocalPtr = NO_PTR,
+  startLocalPtr = NO_PTR
 ) {
   const shape = buildCircle({ id: 'c', ...overrides })
   const start = captureCircleStart(shape)

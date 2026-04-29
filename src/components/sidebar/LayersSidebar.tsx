@@ -52,7 +52,10 @@ function LayerRow({
       {/* Visibility */}
       <button
         title={layer.visible ? 'Hide layer' : 'Show layer'}
-        onClick={(e) => { e.stopPropagation(); onToggleVisibility() }}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggleVisibility()
+        }}
         className="shrink-0 text-gray-500 hover:text-gray-200 transition-colors"
       >
         {layer.visible ? <Eye size={13} /> : <EyeOff size={13} />}
@@ -61,7 +64,10 @@ function LayerRow({
       {/* Lock */}
       <button
         title={layer.locked ? 'Unlock layer' : 'Lock layer'}
-        onClick={(e) => { e.stopPropagation(); onToggleLock() }}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggleLock()
+        }}
         className="shrink-0 text-gray-500 hover:text-gray-200 transition-colors"
       >
         {layer.locked ? <Lock size={13} /> : <Unlock size={13} />}
@@ -78,7 +84,10 @@ function LayerRow({
             onBlur={commitRename}
             onKeyDown={(e) => {
               if (e.key === 'Enter') commitRename()
-              if (e.key === 'Escape') { setDraft(layer.name); setEditing(false) }
+              if (e.key === 'Escape') {
+                setDraft(layer.name)
+                setEditing(false)
+              }
               e.stopPropagation()
             }}
             onClick={(e) => e.stopPropagation()}
@@ -91,7 +100,10 @@ function LayerRow({
               isActive ? 'text-gray-200' : 'text-gray-400',
               !layer.visible ? 'opacity-50' : '',
             ].join(' ')}
-            onDoubleClick={(e) => { e.stopPropagation(); setEditing(true) }}
+            onDoubleClick={(e) => {
+              e.stopPropagation()
+              setEditing(true)
+            }}
           >
             {layer.name}
           </span>
@@ -102,14 +114,20 @@ function LayerRow({
       <div className="hidden group-hover:flex items-center gap-0.5">
         <button
           title="Move up"
-          onClick={(e) => { e.stopPropagation(); onMoveUp() }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onMoveUp()
+          }}
           className="text-gray-500 hover:text-gray-200 transition-colors"
         >
           <ChevronUp size={12} />
         </button>
         <button
           title="Move down"
-          onClick={(e) => { e.stopPropagation(); onMoveDown() }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onMoveDown()
+          }}
           className="text-gray-500 hover:text-gray-200 transition-colors"
         >
           <ChevronDown size={12} />
@@ -117,7 +135,10 @@ function LayerRow({
         {canDelete && (
           <button
             title="Delete layer"
-            onClick={(e) => { e.stopPropagation(); onDelete() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
             className="text-gray-500 hover:text-red-400 transition-colors"
           >
             <Trash2 size={12} />
@@ -150,15 +171,10 @@ export function LayersSidebar() {
   const displayedLayers = [...layers].reverse()
 
   return (
-    <div
-      className="border-t flex flex-col"
-      style={{ borderColor: 'var(--color-toolbar-border)' }}
-    >
+    <div className="border-t flex flex-col" style={{ borderColor: 'var(--color-toolbar-border)' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-          Layers
-        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Layers</span>
         <button
           title="Add layer"
           onClick={() => addLayer(`Layer ${layers.length + 1}`)}
@@ -189,7 +205,10 @@ export function LayersSidebar() {
 
       {/* Active layer opacity */}
       {activeLayer && (
-        <div className="px-4 pb-3 pt-1 border-t" style={{ borderColor: 'var(--color-toolbar-border)' }}>
+        <div
+          className="px-4 pb-3 pt-1 border-t"
+          style={{ borderColor: 'var(--color-toolbar-border)' }}
+        >
           <label className="mb-1 flex items-center justify-between text-xs text-gray-500">
             <span>{activeLayer.name} opacity</span>
             <span className="font-mono">{Math.round(activeLayer.opacity * 100)}%</span>
@@ -207,7 +226,8 @@ export function LayersSidebar() {
 
       {/* Shape count */}
       <div className="px-4 pb-2 text-[10px] text-gray-600">
-        {shapes.filter((s) => (s.layerId ?? activeLayerId) === activeLayerId).length} shape(s) in active layer
+        {shapes.filter((s) => (s.layerId ?? activeLayerId) === activeLayerId).length} shape(s) in
+        active layer
       </div>
     </div>
   )

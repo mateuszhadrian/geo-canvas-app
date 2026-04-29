@@ -104,27 +104,32 @@ Projekt jest wyłącznie SPA bez backendu. Trwałość danych opiera się na loc
 #### MVP Core (desktop only)
 
 **Tworzenie kształtów:**
+
 - Narzędzia: prostokąt, koło/elipsa, trójkąt (`RegularPolygon sides=3`), linia (prosty odcinek)
 - Klik na narzędzie → kształt pojawia się w centrum widocznego canvasa z domyślnymi właściwościami
 - Natychmiastowa manipulacja: drag, resize (Konva Transformer), rotate
 
 **Nawigacja po scenie:**
+
 - Dwa tryby kursora: strzałka (zaznaczanie) i dłoń (pan)
 - Zoom: Ctrl/Cmd + scroll; Pan: narzędzie dłoni lub Space+drag
 - Scena responsywna przez ResizeObserver — stabilna przy zmianie rozmiaru okna
 
 **Panel właściwości (prawy sidebar):**
+
 - Zawsze widoczny; pusty stan: placeholder + lista skrótów klawiaturowych
 - Właściwości: pozycja X/Y, szerokość, wysokość, fill (react-colorful), stroke (react-colorful), strokeWidth, opacity
 - Sticky defaults per shape type
 
 **Trwałość danych:**
+
 - Autosave do localStorage po każdej zmianie
 - Autoload przy starcie (jeśli istnieje zapis)
 - "New Scene" z modalem potwierdzenia
 - Toast/snackbar przy błędzie zapisu
 
 **Zarządzanie stanem:**
+
 - Zustand + Immer
 
 **Skróty klawiaturowe Core:** `Delete/Backspace`, `Escape`, `Ctrl+D`
@@ -134,23 +139,28 @@ Projekt jest wyłącznie SPA bez backendu. Trwałość danych opiera się na loc
 #### MVP Extended
 
 **Właściwości rozszerzone w sidebarze:**
+
 - cornerRadius (prostokąt)
 - Obrót w stopniach
 
 **Organizacja kształtów:**
+
 - Grupowanie / rozgrupowywanie
 - Zarządzanie kolejnością warstw (bring to front / send to back)
 
 **Eksport/Import JSON:**
+
 - Natywny format Konva (`node.toJSON()`)
 - Eksport do pliku `.json` na dysk
 - Import z pliku `.json`
 
 **Eksport PNG:**
+
 - Białe tło `#ffffff`
 - Modal dwukrokowy: (1) padding w px — jednakowy ze wszystkich stron; (2) wysokość w px (edytowalna, domyślna = rzeczywista wysokość sceny w zoom 100% + padding) + szerokość (disabled, proporcjonalna)
 
 **Historia zmian:**
+
 - Undo/Redo (`Ctrl+Z` / `Ctrl+Y`) przez `zundo` (temporal middleware)
 - Pełen zakres: wszystkie mutacje stanu sceny
 - Limit: 50 kroków
@@ -173,26 +183,26 @@ Projekt jest wyłącznie SPA bez backendu. Trwałość danych opiera się na loc
 
 ### Kryteria sukcesu
 
-| Kryterium | Miara |
-|---|---|
-| Wydajność | 200 kształtów @ 60fps na przeciętnym laptopie |
-| Stabilność | Brak błędów w konsoli przeglądarki na Vercel |
+| Kryterium    | Miara                                                      |
+| ------------ | ---------------------------------------------------------- |
+| Wydajność    | 200 kształtów @ 60fps na przeciętnym laptopie              |
+| Stabilność   | Brak błędów w konsoli przeglądarki na Vercel               |
 | Architektura | Custom hooks, serializowalny stan, Zustand + Immer + zundo |
-| Portfolio | README dokumentuje decyzje architektoniczne |
+| Portfolio    | README dokumentuje decyzje architektoniczne                |
 
 ---
 
 ### Stack technologiczny
 
-| Warstwa | Technologia |
-|---|---|
-| Framework | Next.js (App Router) |
-| Canvas | Konva.js + react-konva |
-| Język | TypeScript |
-| Stan | Zustand + Immer + zundo |
-| Stylowanie | TailwindCSS |
-| Color picker | react-colorful |
-| Deploy | Vercel |
+| Warstwa      | Technologia             |
+| ------------ | ----------------------- |
+| Framework    | Next.js (App Router)    |
+| Canvas       | Konva.js + react-konva  |
+| Język        | TypeScript              |
+| Stan         | Zustand + Immer + zundo |
+| Stylowanie   | TailwindCSS             |
+| Color picker | react-colorful          |
+| Deploy       | Vercel                  |
 
 ---
 

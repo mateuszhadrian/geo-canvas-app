@@ -44,13 +44,15 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
     const start = def.captureStart!(shape)
     const { canvasScale, canvasPosition } = useCanvasStore.getState()
     const θ = shape.rotation * (Math.PI / 180)
-    const sinθ = Math.sin(θ), cosθ = Math.cos(θ)
+    const sinθ = Math.sin(θ),
+      cosθ = Math.cos(θ)
 
     const sx = (e.evt.clientX - canvasPosition.x) / canvasScale
     const sy = (e.evt.clientY - canvasPosition.y) / canvasScale
     const startPtr: Point = { x: sx, y: sy }
 
-    const dx = sx - shape.x, dy = sy - shape.y
+    const dx = sx - shape.x,
+      dy = sy - shape.y
     const startLocalPtr: Point = { x: dx * cosθ + dy * sinθ, y: -dx * sinθ + dy * cosθ }
 
     dragRef.current = { startPtr, startLocalPtr, start, kind }
@@ -65,8 +67,10 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
       const cy = (pe.clientY - cp.y) / cs
 
       const θ2 = d.start.rotation * (Math.PI / 180)
-      const sinθ2 = Math.sin(θ2), cosθ2 = Math.cos(θ2)
-      const wdx = cx - d.startPtr.x, wdy = cy - d.startPtr.y
+      const sinθ2 = Math.sin(θ2),
+        cosθ2 = Math.cos(θ2)
+      const wdx = cx - d.startPtr.x,
+        wdy = cy - d.startPtr.y
       const ldx = wdx * cosθ2 + wdy * sinθ2
       const ldy = -wdx * sinθ2 + wdy * cosθ2
 
@@ -76,7 +80,15 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
         const a1 = Math.atan2(cy - d.start.y, cx - d.start.x)
         updates = { rotation: d.start.rotation + (a1 - a0) * (180 / Math.PI) }
       } else {
-        updates = def.applyHandleDrag!(d.start, d.kind, ldx, ldy, d.startLocalPtr, sinθ2, cosθ2) as ShapeUpdate
+        updates = def.applyHandleDrag!(
+          d.start,
+          d.kind,
+          ldx,
+          ldy,
+          d.startLocalPtr,
+          sinθ2,
+          cosθ2
+        ) as ShapeUpdate
       }
 
       if (Object.keys(updates).length > 0) updateShapeTransient(shape.id, updates)
@@ -112,7 +124,7 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
         y={bbox.y1 - HOVER_PAD}
         width={bbox.x2 - bbox.x1 + HOVER_PAD * 2}
         height={bbox.y2 - bbox.y1 + HOVER_PAD * 2}
-        fill='rgba(0,0,0,0)'
+        fill="rgba(0,0,0,0)"
         strokeEnabled={false}
         listening={true}
         perfectDrawEnabled={false}
@@ -127,7 +139,7 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
             width={bbox.x2 - bbox.x1}
             height={bbox.y2 - bbox.y1}
             fillEnabled={false}
-            stroke='#3b82f6'
+            stroke="#3b82f6"
             strokeWidth={1}
             dash={[4, 3]}
             listening={false}
@@ -138,36 +150,46 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
           {sides.map(({ x, y, kind }) => (
             <KonvaCircle
               key={kind}
-              x={x} y={y}
+              x={x}
+              y={y}
               radius={HR}
-              fill='#ffffff'
-              stroke='#3b82f6'
+              fill="#ffffff"
+              stroke="#3b82f6"
               strokeWidth={1.5}
               onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, kind)}
-              onClick={(e) => { e.cancelBubble = true }}
+              onClick={(e) => {
+                e.cancelBubble = true
+              }}
             />
           ))}
 
           {/* Proportional scale — blue square, top-right corner */}
           <KonvaRect
-            x={sh.x - HR} y={sh.y - HR}
-            width={HR * 2} height={HR * 2}
-            fill='#3b82f6'
-            stroke='#1d4ed8'
+            x={sh.x - HR}
+            y={sh.y - HR}
+            width={HR * 2}
+            height={HR * 2}
+            fill="#3b82f6"
+            stroke="#1d4ed8"
             strokeWidth={1.5}
             onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'scale')}
-            onClick={(e) => { e.cancelBubble = true }}
+            onClick={(e) => {
+              e.cancelBubble = true
+            }}
           />
 
           {/* Rotation — amber circle, top-left corner */}
           <KonvaCircle
-            x={rh.x} y={rh.y}
+            x={rh.x}
+            y={rh.y}
             radius={HR}
-            fill='#f59e0b'
-            stroke='#d97706'
+            fill="#f59e0b"
+            stroke="#d97706"
             strokeWidth={1.5}
             onPointerDown={(e) => handlePointerDown(e as KonvaEventObject<PointerEvent>, 'rotate')}
-            onClick={(e) => { e.cancelBubble = true }}
+            onClick={(e) => {
+              e.cancelBubble = true
+            }}
           />
         </>
       )}

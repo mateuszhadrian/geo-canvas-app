@@ -12,10 +12,16 @@ function makeRectShape(id: string): RectShape {
   return {
     id,
     type: 'rect',
-    x: 100, y: 100,
-    width: 100, height: 70,
-    fill: '#4A90D9', cornerRadius: 0,
-    rotation: 0, opacity: 1, stroke: '#333333', strokeWidth: 2,
+    x: 100,
+    y: 100,
+    width: 100,
+    height: 70,
+    fill: '#4A90D9',
+    cornerRadius: 0,
+    rotation: 0,
+    opacity: 1,
+    stroke: '#333333',
+    strokeWidth: 2,
   }
 }
 
@@ -29,13 +35,21 @@ function makeFullDoc(shapes: RectShape[] = []): CanvasDocument {
       updatedAt: '2026-04-28T00:00:00.000Z',
     },
     canvas: {
-      background: '#ffffff', width: 2000, height: 1414,
+      background: '#ffffff',
+      width: 2000,
+      height: 1414,
       grid: { visible: true, size: 20, color: '#e5e7eb', snapEnabled: false, snapThreshold: 8 },
     },
-    layers: [{
-      id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1,
-      shapes,
-    }],
+    layers: [
+      {
+        id: DEFAULT_LAYER_ID,
+        name: 'Layer 1',
+        visible: true,
+        locked: false,
+        opacity: 1,
+        shapes,
+      },
+    ],
     stickyDefaults: {},
   }
 }
@@ -52,7 +66,16 @@ describe('parseDocument', () => {
 
   it('DC-002: partial doc with only layers — fills meta and canvas with defaults', () => {
     const partial = {
-      layers: [{ id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1, shapes: [] }],
+      layers: [
+        {
+          id: DEFAULT_LAYER_ID,
+          name: 'Layer 1',
+          visible: true,
+          locked: false,
+          opacity: 1,
+          shapes: [],
+        },
+      ],
     }
     const result = parseDocument(JSON.stringify(partial))
     expect(result.meta).toBeDefined()
@@ -104,7 +127,9 @@ describe('parseDocument', () => {
 describe('encodeDocument / decodeDocument round-trip', () => {
   it('DC-010: encode → serialize → parse → decode yields identical shapes and layers', () => {
     const rect = { ...makeRectShape('rect-rt'), layerId: DEFAULT_LAYER_ID }
-    const layers = [{ id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 }]
+    const layers = [
+      { id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 },
+    ]
     const encoded = encodeDocument({ shapes: [rect], layers, stickyDefaults: {} })
     const parsed = parseDocument(serializeDocument(encoded))
     const { shapes, layers: decodedLayers } = decodeDocument(parsed)
@@ -117,14 +142,18 @@ describe('encodeDocument / decodeDocument round-trip', () => {
 
   it('DC-011: shape without layerId falls into first layer as orphan', () => {
     const rect = makeRectShape('rect-orphan') // no layerId
-    const layers = [{ id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 }]
+    const layers = [
+      { id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 },
+    ]
     const encoded = encodeDocument({ shapes: [rect], layers, stickyDefaults: {} })
     expect(encoded.layers[0].shapes).toHaveLength(1)
     expect(encoded.layers[0].shapes[0].id).toBe('rect-orphan')
   })
 
   it('DC-012: empty canvas encodes and decodes without errors; decoded has ≥1 layer', () => {
-    const layers = [{ id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 }]
+    const layers = [
+      { id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 },
+    ]
     const encoded = encodeDocument({ shapes: [], layers, stickyDefaults: {} })
     const { shapes, layers: decoded } = decodeDocument(parseDocument(serializeDocument(encoded)))
     expect(shapes).toHaveLength(0)
@@ -144,7 +173,9 @@ describe('encodeDocument / decodeDocument round-trip', () => {
       createdAt: '2026-01-01T00:00:00.000Z',
       name: 'Stable Doc',
     }
-    const layers = [{ id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 }]
+    const layers = [
+      { id: DEFAULT_LAYER_ID, name: 'Layer 1', visible: true, locked: false, opacity: 1 },
+    ]
     const encoded = encodeDocument({ shapes: [], layers, stickyDefaults: {}, existingMeta })
     expect(encoded.meta.id).toBe('stable-id')
     expect(encoded.meta.createdAt).toBe('2026-01-01T00:00:00.000Z')

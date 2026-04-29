@@ -61,8 +61,12 @@ export default function CanvasApp() {
 
   const scaleRef = useRef(canvasScale)
   const positionRef = useRef(canvasPosition)
-  useEffect(() => { scaleRef.current = canvasScale }, [canvasScale])
-  useEffect(() => { positionRef.current = canvasPosition }, [canvasPosition])
+  useEffect(() => {
+    scaleRef.current = canvasScale
+  }, [canvasScale])
+  useEffect(() => {
+    positionRef.current = canvasPosition
+  }, [canvasPosition])
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -74,15 +78,28 @@ export default function CanvasApp() {
       if (e.metaKey || e.ctrlKey) {
         const oldScale = scaleRef.current
         const direction = e.deltaY < 0 ? 1 : -1
-        const newScale = Math.min(MAX_SCALE, Math.max(getMinScale(), oldScale * (1 + direction * ZOOM_STEP)))
+        const newScale = Math.min(
+          MAX_SCALE,
+          Math.max(getMinScale(), oldScale * (1 + direction * ZOOM_STEP))
+        )
         if (newScale === oldScale) return
         const ratio = newScale / oldScale
         const pos = positionRef.current
         setCanvasScale(newScale)
-        setCanvasPosition(clampPosition({ x: e.clientX - (e.clientX - pos.x) * ratio, y: e.clientY - (e.clientY - pos.y) * ratio }, newScale))
+        setCanvasPosition(
+          clampPosition(
+            {
+              x: e.clientX - (e.clientX - pos.x) * ratio,
+              y: e.clientY - (e.clientY - pos.y) * ratio,
+            },
+            newScale
+          )
+        )
       } else {
         const pos = positionRef.current
-        setCanvasPosition(clampPosition({ x: pos.x - e.deltaX, y: pos.y - e.deltaY }, scaleRef.current))
+        setCanvasPosition(
+          clampPosition({ x: pos.x - e.deltaX, y: pos.y - e.deltaY }, scaleRef.current)
+        )
       }
     }
     el.addEventListener('wheel', handleWheel, { passive: false })
@@ -104,11 +121,23 @@ export default function CanvasApp() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target instanceof HTMLElement ? e.target : null
       if (!target) return
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        return
 
-      if (e.key === 'Escape') { setSelectedShapeIds([]); return }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return }
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return }
+      if (e.key === 'Escape') {
+        setSelectedShapeIds([])
+        return
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+        return
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault()
+        redo()
+        return
+      }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         const { selectedShapeIds: ids } = useCanvasStore.getState()
         if (ids.length > 0) removeShapes(ids)
@@ -132,13 +161,15 @@ export default function CanvasApp() {
 
   const cursor =
     activeTool === 'hand'
-      ? isPanning ? 'grabbing' : 'grab'
-      : marqueeRect ? 'crosshair' : 'default'
+      ? isPanning
+        ? 'grabbing'
+        : 'grab'
+      : marqueeRect
+        ? 'crosshair'
+        : 'default'
 
   // Marquee selection is limited to the active layer (if it's visible and unlocked)
-  const activeLayerSelectable = layers.some(
-    (l) => l.id === activeLayerId && l.visible && !l.locked
-  )
+  const activeLayerSelectable = layers.some((l) => l.id === activeLayerId && l.visible && !l.locked)
 
   return (
     <div
@@ -158,8 +189,14 @@ export default function CanvasApp() {
         dragBoundFunc={(pos) => clampPosition(pos, scaleRef.current)}
         onClick={(e) => {
           if (e.target !== e.currentTarget) return
-          if (didMarqueeSelectRef.current) { didMarqueeSelectRef.current = false; return }
-          if (didHandleDragRef.current) { didHandleDragRef.current = false; return }
+          if (didMarqueeSelectRef.current) {
+            didMarqueeSelectRef.current = false
+            return
+          }
+          if (didHandleDragRef.current) {
+            didHandleDragRef.current = false
+            return
+          }
           const stage = e.target.getStage()
           const raw = stage?.getPointerPosition()
           if (raw) {
@@ -193,7 +230,8 @@ export default function CanvasApp() {
             y: (raw.y - positionRef.current.y) / scaleRef.current,
           }
           const { x: sx, y: sy } = marqueeStartRef.current
-          if (Math.abs(pos.x - sx) < MARQUEE_THRESHOLD && Math.abs(pos.y - sy) < MARQUEE_THRESHOLD) return
+          if (Math.abs(pos.x - sx) < MARQUEE_THRESHOLD && Math.abs(pos.y - sy) < MARQUEE_THRESHOLD)
+            return
           const newRect = { x1: sx, y1: sy, x2: pos.x, y2: pos.y }
           marqueeRectRef.current = newRect
           setMarqueeRect(newRect)
@@ -208,10 +246,11 @@ export default function CanvasApp() {
               x2: Math.max(rect.x1, rect.x2),
               y2: Math.max(rect.y1, rect.y2),
             }
-            const selected = shapes.filter((shape) =>
-              activeLayerSelectable &&
-              (shape.layerId ?? activeLayerId) === activeLayerId &&
-              intersectsBoundingBox(getShapeBoundingBox(shape), normalized)
+            const selected = shapes.filter(
+              (shape) =>
+                activeLayerSelectable &&
+                (shape.layerId ?? activeLayerId) === activeLayerId &&
+                intersectsBoundingBox(getShapeBoundingBox(shape), normalized)
             )
             setSelectedShapeIds(selected.map((s) => s.id))
             didMarqueeSelectRef.current = true
@@ -235,11 +274,7 @@ export default function CanvasApp() {
 
         {/* One Konva Layer per canvas layer, in z-order (index 0 = bottom) */}
         {layers.map((layer) => (
-          <KonvaLayer
-            key={layer.id}
-            visible={layer.visible}
-            opacity={layer.opacity}
-          >
+          <KonvaLayer key={layer.id} visible={layer.visible} opacity={layer.opacity}>
             {shapes
               .filter((s) => (s.layerId ?? activeLayerId) === layer.id)
               .map((shape) => (
@@ -249,15 +284,26 @@ export default function CanvasApp() {
                   disableListening={shape.id === multilineFirstLineId}
                   layerLocked={layer.locked}
                 />
-              ))
-            }
+              ))}
           </KonvaLayer>
         ))}
 
         {/* UI controls layer — always on top */}
         <KonvaLayer>
-          {activeTool === 'select' && <MultiLineHandles onDragEnd={() => { didHandleDragRef.current = true }} />}
-          {activeTool === 'select' && <MultiShapeHandles onDragEnd={() => { didHandleDragRef.current = true }} />}
+          {activeTool === 'select' && (
+            <MultiLineHandles
+              onDragEnd={() => {
+                didHandleDragRef.current = true
+              }}
+            />
+          )}
+          {activeTool === 'select' && (
+            <MultiShapeHandles
+              onDragEnd={() => {
+                didHandleDragRef.current = true
+              }}
+            />
+          )}
           {marqueeRect && (
             <SelectionMarquee
               x1={marqueeRect.x1}

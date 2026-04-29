@@ -3,7 +3,13 @@
 import { Ellipse } from 'react-konva'
 import type { EllipseShape } from './types'
 
-export function EllipseRenderer({ shape, isSelected }: { shape: EllipseShape; isSelected: boolean }) {
+export function EllipseRenderer({
+  shape,
+  isSelected,
+}: {
+  shape: EllipseShape
+  isSelected: boolean
+}) {
   return (
     <>
       <Ellipse
@@ -18,7 +24,7 @@ export function EllipseRenderer({ shape, isSelected }: { shape: EllipseShape; is
           radiusX={Math.max(1, shape.radiusX - 1)}
           radiusY={Math.max(1, shape.radiusY - 1)}
           fillEnabled={false}
-          stroke='#93c5fd'
+          stroke="#93c5fd"
           strokeWidth={2}
           listening={false}
           hitStrokeWidth={0}

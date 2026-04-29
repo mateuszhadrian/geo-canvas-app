@@ -5,8 +5,12 @@ import { createEllipse } from './factory'
 import { EllipseRenderer } from './Renderer'
 import { EllipsePropertiesPanel } from './PropertiesPanel'
 import {
-  captureEllipseStart, getEllipseHandles, applyEllipseHandleDrag,
-  captureEllipseGeometry, getEllipseBoundingBox, getEllipseWorldPoints,
+  captureEllipseStart,
+  getEllipseHandles,
+  applyEllipseHandleDrag,
+  captureEllipseGeometry,
+  getEllipseBoundingBox,
+  getEllipseWorldPoints,
 } from './handles'
 import { getEllipseAnchors } from './anchors'
 

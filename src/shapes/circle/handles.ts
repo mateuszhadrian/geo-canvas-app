@@ -1,5 +1,12 @@
 import type { CircleShape } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
+import type {
+  HandleGeometry,
+  StartSnapshot,
+  FieldUpdate,
+  Point,
+  BoundingBox,
+  HandleKind,
+} from '../_base/types'
 
 interface CircleStart extends StartSnapshot {
   radius: number
@@ -15,8 +22,8 @@ export function getCircleHandles(shape: CircleShape): HandleGeometry {
     bbox: { x1: -R, y1: -R, x2: R, y2: R },
     sides: [
       { x: 0, y: -R, kind: 'top' },
-      { x: R, y: 0,  kind: 'right' },
-      { x: 0, y: R,  kind: 'bottom' },
+      { x: R, y: 0, kind: 'right' },
+      { x: 0, y: R, kind: 'bottom' },
       { x: -R, y: 0, kind: 'left' },
     ],
     scale: { x: R, y: -R },
@@ -31,7 +38,7 @@ export function applyCircleHandleDrag(
   ldy: number,
   startLocalPtr: Point,
   sinθ: number,
-  cosθ: number,
+  cosθ: number
 ): FieldUpdate {
   const s = start as CircleStart
   const R = s.radius
@@ -40,13 +47,15 @@ export function applyCircleHandleDrag(
     const px = startLocalPtr.x + ldx
     const py = startLocalPtr.y + ldy
     const dTr = Math.sqrt(2) * R
-    const proj = (px * R + py * (-R)) / dTr
+    const proj = (px * R + py * -R) / dTr
     const f = Math.max(0.1, proj / dTr)
     return { radius: Math.max(5, f * R) }
   }
 
-  let radiusX = R, radiusY = R
-  let cx = 0, cy = 0
+  let radiusX = R,
+    radiusY = R
+  let cx = 0,
+    cy = 0
 
   if (kind === 'top') {
     const eLdy = Math.min(ldy, 2 * (R - 1))

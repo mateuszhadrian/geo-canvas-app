@@ -95,7 +95,12 @@ function applyInverse(state: MutableShapesState, command: HistoryCommand): void 
   }
 }
 
-type CanvasStore = ShapesSlice & SelectionSlice & ViewportSlice & ToolSlice & HistorySlice & LayersSlice
+type CanvasStore = ShapesSlice &
+  SelectionSlice &
+  ViewportSlice &
+  ToolSlice &
+  HistorySlice &
+  LayersSlice
 
 export const useCanvasStore = create<CanvasStore>()(
   immer((set) => ({
@@ -149,7 +154,9 @@ export const useCanvasStore = create<CanvasStore>()(
       }),
 
     setActiveLayer: (id: string) =>
-      set((state) => { state.activeLayerId = id }),
+      set((state) => {
+        state.activeLayerId = id
+      }),
 
     moveLayerUp: (id: string) =>
       set((state) => {
@@ -186,7 +193,7 @@ export const useCanvasStore = create<CanvasStore>()(
       set((state) => {
         // Inject active layerId if not already set
         const layerId = shape.layerId ?? state.activeLayerId
-        const finalShape = { ...shape, layerId } as unknown as typeof state.shapes[0]
+        const finalShape = { ...shape, layerId } as unknown as (typeof state.shapes)[0]
         state.shapes.push(finalShape)
         pushCmd(state, { type: 'ADD_SHAPE', shape: { ...shape, layerId } as Shape })
       }),
@@ -263,7 +270,8 @@ export const useCanvasStore = create<CanvasStore>()(
           }
         }
         const after = state.shapes.map((s) => s.id)
-        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+        if (before.join(',') !== after.join(','))
+          pushCmd(state, { type: 'REORDER_SHAPES', before, after })
       }),
 
     bringToFront: (ids: string[]) =>
@@ -274,7 +282,8 @@ export const useCanvasStore = create<CanvasStore>()(
         const top = state.shapes.filter((s) => selected.has(s.id))
         state.shapes = [...rest, ...top] as typeof state.shapes
         const after = state.shapes.map((s) => s.id)
-        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+        if (before.join(',') !== after.join(','))
+          pushCmd(state, { type: 'REORDER_SHAPES', before, after })
       }),
 
     sendBackward: (ids: string[]) =>
@@ -288,7 +297,8 @@ export const useCanvasStore = create<CanvasStore>()(
           }
         }
         const after = state.shapes.map((s) => s.id)
-        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+        if (before.join(',') !== after.join(','))
+          pushCmd(state, { type: 'REORDER_SHAPES', before, after })
       }),
 
     sendToBack: (ids: string[]) =>
@@ -299,14 +309,17 @@ export const useCanvasStore = create<CanvasStore>()(
         const bottom = state.shapes.filter((s) => selected.has(s.id))
         state.shapes = [...bottom, ...rest] as typeof state.shapes
         const after = state.shapes.map((s) => s.id)
-        if (before.join(',') !== after.join(',')) pushCmd(state, { type: 'REORDER_SHAPES', before, after })
+        if (before.join(',') !== after.join(','))
+          pushCmd(state, { type: 'REORDER_SHAPES', before, after })
       }),
 
     // ── selection slice ────────────────────────────────────────────────────────
 
     selectedShapeIds: [],
     setSelectedShapeIds: (ids: string[]) =>
-      set((state) => { state.selectedShapeIds = ids }),
+      set((state) => {
+        state.selectedShapeIds = ids
+      }),
     toggleShapeSelection: (id: string) =>
       set((state) => {
         const idx = state.selectedShapeIds.indexOf(id)
@@ -316,22 +329,30 @@ export const useCanvasStore = create<CanvasStore>()(
 
     // ── viewport slice ─────────────────────────────────────────────────────────
 
-    canvasScale: typeof window !== 'undefined'
-      ? Math.max(window.innerWidth / CANVAS_WIDTH, window.innerHeight / CANVAS_HEIGHT)
-      : 1,
-    canvasPosition: typeof window !== 'undefined'
-      ? { x: window.innerWidth / 2, y: window.innerHeight / 2 }
-      : { x: 400, y: 300 },
+    canvasScale:
+      typeof window !== 'undefined'
+        ? Math.max(window.innerWidth / CANVAS_WIDTH, window.innerHeight / CANVAS_HEIGHT)
+        : 1,
+    canvasPosition:
+      typeof window !== 'undefined'
+        ? { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        : { x: 400, y: 300 },
     setCanvasScale: (scale) =>
-      set((state) => { state.canvasScale = scale }),
+      set((state) => {
+        state.canvasScale = scale
+      }),
     setCanvasPosition: (pos) =>
-      set((state) => { state.canvasPosition = pos }),
+      set((state) => {
+        state.canvasPosition = pos
+      }),
 
     // ── tool slice ─────────────────────────────────────────────────────────────
 
     activeTool: 'select' as ToolType,
     setActiveTool: (tool: ToolType) =>
-      set((state) => { state.activeTool = tool }),
+      set((state) => {
+        state.activeTool = tool
+      }),
 
     // ── history slice ──────────────────────────────────────────────────────────
 
@@ -341,7 +362,9 @@ export const useCanvasStore = create<CanvasStore>()(
     canRedo: false,
 
     pushHistory: (command: HistoryCommand) =>
-      set((state) => { pushCmd(state, command) }),
+      set((state) => {
+        pushCmd(state, command)
+      }),
 
     undo: () =>
       set((state) => {
