@@ -4,7 +4,7 @@
 >
 > Zmiany względem pierwotnego PRD są zaznaczone adnotacją `[ZMIANA]`. Wymagania niezaimplementowane jako `[PENDING]`.
 
-## 1. Przegląd produktu
+## 1. Przegląd produktu GeoCanvas
 
 GeoCanvas to minimalistyczny, geometryczny edytor kształtów działający w przeglądarce, zbudowany jako projekt edukacyjno-portfolio. Aplikacja umożliwia tworzenie, edycję i organizację geometrycznych kształtów na interaktywnym canvasie, z możliwością zapisywania i eksportowania prac.
 
