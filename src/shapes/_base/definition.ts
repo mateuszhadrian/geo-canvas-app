@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import type {
   BaseShape, ShapeType, Point, BoundingBox,
-  HandleGeometry, AnchorPoint, StartSnapshot, FieldUpdate,
+  HandleGeometry, AnchorPoint, StartSnapshot, FieldUpdate, HandleKind,
 } from './types'
 
 export interface ShapeDefinition<S extends BaseShape = BaseShape> {
@@ -27,7 +27,7 @@ export interface ShapeDefinition<S extends BaseShape = BaseShape> {
   captureStart: ((shape: S) => StartSnapshot) | null
   applyHandleDrag: ((
     start: StartSnapshot,
-    kind: string,
+    kind: HandleKind,
     ldx: number,
     ldy: number,
     startLocalPtr: Point,

@@ -1,5 +1,5 @@
 import type { RectShape } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox } from '../_base/types'
+import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
 
 interface RectStart extends StartSnapshot {
   width: number
@@ -28,7 +28,7 @@ export function getRectHandles(shape: RectShape): HandleGeometry {
 
 export function applyRectHandleDrag(
   start: StartSnapshot,
-  kind: string,
+  kind: HandleKind,
   ldx: number,
   ldy: number,
   startLocalPtr: Point,

@@ -30,7 +30,7 @@ jest.mock('@/store/use-canvas-store', () => ({
 const mockAddShape = jest.fn()
 const mockSetActiveTool = jest.fn()
 
-function setupStoreMock(activeTool: ToolType = 'select') {
+function setupStoreMock(activeTool: ToolType = 'select', selectedShapeIds: string[] = []) {
   ;(useCanvasStore as unknown as jest.Mock).mockImplementation((selector) =>
     selector({
       activeTool,
@@ -40,6 +40,11 @@ function setupStoreMock(activeTool: ToolType = 'select') {
       canvasPosition: { x: 0, y: 0 },
       canvasScale: 1,
       setCanvasPosition: jest.fn(),
+      selectedShapeIds,
+      bringForward: jest.fn(),
+      bringToFront: jest.fn(),
+      sendBackward: jest.fn(),
+      sendToBack: jest.fn(),
     })
   )
 }
@@ -112,6 +117,11 @@ describe('Toolbar — shape buttons', () => {
         canvasPosition: { x: 100, y: 50 },
         canvasScale: 2,
         setCanvasPosition: jest.fn(),
+        selectedShapeIds: [],
+        bringForward: jest.fn(),
+        bringToFront: jest.fn(),
+        sendBackward: jest.fn(),
+        sendToBack: jest.fn(),
       })
     )
     const user = userEvent.setup()

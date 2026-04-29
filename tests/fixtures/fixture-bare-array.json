@@ -1,0 +1,40 @@
+[
+  {
+    "id": "rect-fixture-1",
+    "type": "rect",
+    "x": 100,
+    "y": 100,
+    "width": 100,
+    "height": 70,
+    "fill": "#4A90D9",
+    "cornerRadius": 0,
+    "rotation": 0,
+    "opacity": 1,
+    "stroke": "#333333",
+    "strokeWidth": 2
+  },
+  {
+    "id": "circle-fixture-1",
+    "type": "circle",
+    "x": 300,
+    "y": 200,
+    "radius": 45,
+    "fill": "#E8A838",
+    "rotation": 0,
+    "opacity": 1,
+    "stroke": "#333333",
+    "strokeWidth": 2
+  },
+  {
+    "id": "line-fixture-1",
+    "type": "line",
+    "x": 400,
+    "y": 300,
+    "points": [0, 0, 100, 0],
+    "dash": false,
+    "rotation": 0,
+    "opacity": 1,
+    "stroke": "#333333",
+    "strokeWidth": 2
+  }
+]

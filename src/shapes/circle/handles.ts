@@ -1,5 +1,5 @@
 import type { CircleShape } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox } from '../_base/types'
+import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
 
 interface CircleStart extends StartSnapshot {
   radius: number
@@ -26,7 +26,7 @@ export function getCircleHandles(shape: CircleShape): HandleGeometry {
 
 export function applyCircleHandleDrag(
   start: StartSnapshot,
-  kind: string,
+  kind: HandleKind,
   ldx: number,
   ldy: number,
   startLocalPtr: Point,

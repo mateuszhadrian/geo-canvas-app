@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "id": "fixture-full",
+    "name": "Full Document",
+    "createdAt": "2026-04-28T00:00:00.000Z",
+    "updatedAt": "2026-04-28T00:00:00.000Z"
+  },
+  "canvas": {
+    "background": "#ffffff",
+    "width": 2000,
+    "height": 1414,
+    "grid": {
+      "visible": true,
+      "size": 20,
+      "color": "#e5e7eb",
+      "snapEnabled": false,
+      "snapThreshold": 8
+    }
+  },
+  "layers": [
+    {
+      "id": "layer_default",
+      "name": "Layer 1",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "shapes": [
+        {
+          "id": "rect-layer1-1",
+          "type": "rect",
+          "x": 200,
+          "y": 200,
+          "width": 150,
+          "height": 100,
+          "fill": "#4A90D9",
+          "cornerRadius": 4,
+          "rotation": 0,
+          "opacity": 1,
+          "stroke": "#333333",
+          "strokeWidth": 2,
+          "layerId": "layer_default"
+        }
+      ]
+    },
+    {
+      "id": "layer-2",
+      "name": "Layer 2",
+      "visible": true,
+      "locked": false,
+      "opacity": 0.8,
+      "shapes": [
+        {
+          "id": "circle-layer2-1",
+          "type": "circle",
+          "x": 500,
+          "y": 400,
+          "radius": 60,
+          "fill": "#E8A838",
+          "rotation": 0,
+          "opacity": 1,
+          "stroke": "#333333",
+          "strokeWidth": 2,
+          "layerId": "layer-2"
+        }
+      ]
+    }
+  ],
+  "stickyDefaults": {}
+}

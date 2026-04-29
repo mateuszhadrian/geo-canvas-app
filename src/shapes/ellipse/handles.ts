@@ -1,5 +1,5 @@
 import type { EllipseShape } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox } from '../_base/types'
+import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
 
 interface EllipseStart extends StartSnapshot {
   radiusX: number
@@ -27,7 +27,7 @@ export function getEllipseHandles(shape: EllipseShape): HandleGeometry {
 
 export function applyEllipseHandleDrag(
   start: StartSnapshot,
-  kind: string,
+  kind: HandleKind,
   ldx: number,
   ldy: number,
   startLocalPtr: Point,

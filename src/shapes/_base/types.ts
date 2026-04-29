@@ -9,8 +9,15 @@ export interface BoundingBox {
   y2: number
 }
 
+// All concrete handle kinds used across shape implementations.
+export type HandleKind =
+  | 'top' | 'bottom' | 'left' | 'right'  // cardinal edge handles
+  | 'side01' | 'side12' | 'side20'        // triangle edge midpoints
+  | 'scale'                               // proportional scale (top-right corner)
+  | 'rotate'                              // rotation (top-left corner)
+
 export interface HandleDescriptor {
-  kind: string
+  kind: HandleKind
   x: number
   y: number
   cursor?: string

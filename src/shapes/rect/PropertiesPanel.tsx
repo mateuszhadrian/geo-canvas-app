@@ -51,7 +51,7 @@ export function RectPropertiesPanel({ shape }: { shape: RectShape }) {
   const beforeRef = useRef<{ width?: number; height?: number; cornerRadius?: number } | null>(null)
 
   const commit = (field: 'width' | 'height' | 'cornerRadius', value: number) => {
-    const before = beforeRef.current ?? { [field]: (shape as unknown as Record<string, unknown>)[field] }
+    const before = beforeRef.current ?? { [field]: shape[field] }
     const after = { [field]: value }
     updateShapeTransient(shape.id, after)
     commitShapeUpdate(shape.id, before, after)

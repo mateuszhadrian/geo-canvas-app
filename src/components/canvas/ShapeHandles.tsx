@@ -7,7 +7,7 @@ import { useCanvasStore } from '@/store/use-canvas-store'
 import { SHAPE_REGISTRY } from '@/shapes/registry'
 import type { Shape, Point } from '@/shapes'
 import type { ShapeUpdate } from '@/store/types'
-import type { StartSnapshot } from '@/shapes/_base/types'
+import type { StartSnapshot, HandleKind } from '@/shapes/_base/types'
 
 const HR = 5
 const HOVER_PAD = 30
@@ -16,7 +16,7 @@ interface DragState {
   startPtr: Point
   startLocalPtr: Point
   start: StartSnapshot
-  kind: string
+  kind: HandleKind
 }
 
 interface Props {
@@ -38,7 +38,7 @@ export function ShapeHandles({ shape, showFullHandles, onDragActiveChange }: Pro
   const geo = def.getHandles(shape)
   if (!geo) return null
 
-  const handlePointerDown = (e: KonvaEventObject<PointerEvent>, kind: string) => {
+  const handlePointerDown = (e: KonvaEventObject<PointerEvent>, kind: HandleKind) => {
     e.cancelBubble = true
 
     const start = def.captureStart!(shape)

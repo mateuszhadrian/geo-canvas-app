@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Sketch } from '@uiw/react-color'
 import type { ColorResult } from '@uiw/react-color'
 import { useCanvasStore } from '@/store/use-canvas-store'
@@ -12,14 +12,18 @@ function hasFill(shape: Shape): shape is Extract<Shape, { fill: string }> {
   return 'fill' in shape
 }
 
+function getField(obj: unknown, key: string): unknown {
+  return (obj as Record<string, unknown>)[key]
+}
+
 // ── ColorRow ──────────────────────────────────────────────────────────────────
 
 function ColorRow({
-  label, color, open, onToggle, onBeforeChange, onChange, onAfterChange,
+  label, color, open, onToggle, onChange,
 }: {
   label: string; color: string; open: boolean
-  onToggle: () => void; onBeforeChange: () => void
-  onChange: (c: ColorResult) => void; onAfterChange: () => void
+  onToggle: () => void
+  onChange: (c: ColorResult) => void
 }) {
   return (
     <section>
@@ -32,7 +36,7 @@ function ColorRow({
         <span className="ml-auto font-mono text-gray-400">{color.toUpperCase()}</span>
       </button>
       {open && (
-        <div className="mt-2 flex justify-center" onPointerDown={onBeforeChange} onPointerUp={onAfterChange}>
+        <div className="mt-2 flex justify-center">
           <Sketch
             color={color}
             disableAlpha
@@ -56,6 +60,36 @@ export function PropertiesSidebar() {
   const [fillOpen, setFillOpen] = useState(false)
   const [strokeOpen, setStrokeOpen] = useState(false)
   const beforeRef = useRef<ShapeUpdate | null>(null)
+  // Tracks which color field is currently being edited (set when picker opens)
+  const openFieldRef = useRef<'fill' | 'stroke' | null>(null)
+
+  // Commit pending color change on every pointer release anywhere on the page.
+  // This ensures each drag gesture is immediately in history, so Ctrl+Z works
+  // even when the picker is still open.
+  useEffect(() => {
+    if (!fillOpen && !strokeOpen) return
+
+    const handlePointerUp = () => {
+      const field = openFieldRef.current
+      const shapeId = selectedShapeIds[0]
+      if (!field || !shapeId || beforeRef.current === null) return
+
+      const state = useCanvasStore.getState()
+      const current = state.shapes.find((s) => s.id === shapeId)
+      if (!current) return
+
+      const currentVal = getField(current, field) as string
+      const beforeVal = getField(beforeRef.current, field) as string | undefined
+      if (beforeVal !== undefined && beforeVal !== currentVal) {
+        state.commitShapeUpdate(shapeId, { [field]: beforeVal }, { [field]: currentVal })
+        // Re-capture for any further drag in the same session
+        beforeRef.current = { [field]: currentVal }
+      }
+    }
+
+    document.addEventListener('pointerup', handlePointerUp)
+    return () => document.removeEventListener('pointerup', handlePointerUp)
+  }, [fillOpen, strokeOpen, selectedShapeIds])
 
   if (selectedShapeIds.length !== 1) return null
 
@@ -65,13 +99,15 @@ export function PropertiesSidebar() {
   const withFill = hasFill(shape)
   const opacityPct = Math.round(shape.opacity * 100)
 
+  // Commits any pending transient change (called when picker closes or field switches).
+  // The global pointerup handler covers drag-end; this covers hex-input edits and close.
   const commit = (field: keyof ShapeUpdate) => {
     if (beforeRef.current === null) return
     const current = useCanvasStore.getState().shapes.find((s) => s.id === shape.id)
     if (!current) { beforeRef.current = null; return }
-    const currentVal = (current as unknown as Record<string, unknown>)[field as string]
+    const currentVal = getField(current, field)
     const after: ShapeUpdate = { [field]: currentVal }
-    if ((beforeRef.current as Record<string, unknown>)[field as string] !== currentVal) {
+    if (getField(beforeRef.current, field) !== currentVal) {
       commitShapeUpdate(shape.id, beforeRef.current, after)
     }
     beforeRef.current = null
@@ -114,12 +150,21 @@ export function PropertiesSidebar() {
           label="Fill"
           color={(shape as Extract<Shape, { fill: string }>).fill}
           open={fillOpen}
-          onToggle={() => { setFillOpen((v) => !v); if (strokeOpen) setStrokeOpen(false) }}
-          onBeforeChange={() => {
-            if (beforeRef.current === null) beforeRef.current = { fill: (shape as Extract<Shape, { fill: string }>).fill }
+          onToggle={() => {
+            if (fillOpen) {
+              commit('fill')
+              openFieldRef.current = null
+            } else {
+              if (strokeOpen) {
+                commit('stroke')
+                setStrokeOpen(false)
+              }
+              openFieldRef.current = 'fill'
+              beforeRef.current = { fill: (shape as Extract<Shape, { fill: string }>).fill }
+            }
+            setFillOpen((v) => !v)
           }}
           onChange={(c) => updateShapeTransient(shape.id, { fill: c.hex })}
-          onAfterChange={() => commit('fill')}
         />
       )}
 
@@ -128,10 +173,21 @@ export function PropertiesSidebar() {
         label="Stroke"
         color={shape.stroke}
         open={strokeOpen}
-        onToggle={() => { setStrokeOpen((v) => !v); if (fillOpen) setFillOpen(false) }}
-        onBeforeChange={() => { if (beforeRef.current === null) beforeRef.current = { stroke: shape.stroke } }}
+        onToggle={() => {
+          if (strokeOpen) {
+            commit('stroke')
+            openFieldRef.current = null
+          } else {
+            if (fillOpen) {
+              commit('fill')
+              setFillOpen(false)
+            }
+            openFieldRef.current = 'stroke'
+            beforeRef.current = { stroke: shape.stroke }
+          }
+          setStrokeOpen((v) => !v)
+        }}
         onChange={(c) => updateShapeTransient(shape.id, { stroke: c.hex })}
-        onAfterChange={() => commit('stroke')}
       />
     </div>
   )

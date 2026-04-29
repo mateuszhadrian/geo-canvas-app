@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "id": "fixture-empty",
+    "name": "Empty Document",
+    "createdAt": "2026-04-28T00:00:00.000Z",
+    "updatedAt": "2026-04-28T00:00:00.000Z"
+  },
+  "canvas": {
+    "background": "#ffffff",
+    "width": 2000,
+    "height": 1414,
+    "grid": {
+      "visible": true,
+      "size": 20,
+      "color": "#e5e7eb",
+      "snapEnabled": false,
+      "snapThreshold": 8
+    }
+  },
+  "layers": [
+    {
+      "id": "layer_default",
+      "name": "Layer 1",
+      "visible": true,
+      "locked": false,
+      "opacity": 1,
+      "shapes": []
+    }
+  ],
+  "stickyDefaults": {}
+}

@@ -5,7 +5,7 @@ import { Group } from 'react-konva'
 import type { KonvaEventObject } from 'konva/lib/Node'
 import { SHAPE_REGISTRY } from '@/shapes/registry'
 import { useCanvasStore } from '@/store/use-canvas-store'
-import type { Shape } from '@/shapes'
+import type { Shape, Point } from '@/shapes'
 import { ShapeHandles } from './ShapeHandles'
 import { AnchorPoints } from './AnchorPoints'
 
@@ -31,7 +31,7 @@ export function ShapeNode({
   const [isHovered, setIsHovered] = useState(false)
   const [handleDragActive, setHandleDragActive] = useState(false)
   const handleDragActiveRef = useRef(false)
-  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map())
+  const dragStartPositions = useRef<Map<string, Point>>(new Map())
 
   const notListening = disableListening || layerLocked
 
@@ -64,7 +64,7 @@ export function ShapeNode({
       onDragStart={(e) => {
         if (handleDragActiveRef.current) { e.target.stopDrag(); return }
         const { shapes: allShapes, selectedShapeIds: ids } = useCanvasStore.getState()
-        const map = new Map<string, { x: number; y: number }>()
+        const map = new Map<string, Point>()
         allShapes.forEach((s) => { if (ids.includes(s.id)) map.set(s.id, { x: s.x, y: s.y }) })
         dragStartPositions.current = map
       }}

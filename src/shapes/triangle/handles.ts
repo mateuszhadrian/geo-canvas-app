@@ -1,5 +1,5 @@
 import type { TriangleShape, TriangleVertices } from './types'
-import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox } from '../_base/types'
+import type { HandleGeometry, StartSnapshot, FieldUpdate, Point, BoundingBox, HandleKind } from '../_base/types'
 
 interface TriangleStart extends StartSnapshot {
   vertices: TriangleVertices
@@ -30,7 +30,7 @@ export function getTriangleHandles(shape: TriangleShape): HandleGeometry {
 
 export function applyTriangleHandleDrag(
   start: StartSnapshot,
-  kind: string,
+  kind: HandleKind,
   ldx: number,
   ldy: number,
   startLocalPtr: Point,

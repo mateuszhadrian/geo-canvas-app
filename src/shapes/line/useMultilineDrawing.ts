@@ -3,7 +3,10 @@ import { useCanvasStore } from '@/store/use-canvas-store'
 import { createLine } from './factory'
 import type { LineShape } from './types'
 
-export function useMultilineDrawing() {
+export function useMultilineDrawing(): {
+  multilineFirstLineId: string | null
+  tryExtendOrClose: (clickX: number, clickY: number) => boolean
+} {
   const shapes = useCanvasStore((s) => s.shapes)
   const selectedShapeIds = useCanvasStore((s) => s.selectedShapeIds)
 
