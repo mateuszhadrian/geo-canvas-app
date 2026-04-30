@@ -1,14 +1,13 @@
 # Ostatecznie ustalony stack technologiczny — GeoCanvas
 
 Data ustalenia: 2026-04-23  
-Ostatnia aktualizacja: 2026-04-28
+Ostatnia aktualizacja: 2026-04-29
 
 Ten dokument definiuje finalny stack technologiczny aplikacji GeoCanvas.
 
-## Decyzja architektoniczna: Next.js
+## Decyzja architektoniczna: Next.js oraz Supabase
 
-Wybór `Next.js` jest **świadomy** i pozostaje ostateczny, mimo że aplikacja jest SPA bez backendu.  
-Celem jest nauka składni i wzorców `Next.js`, które będą potrzebne w kolejnych projektach rozszerzonych o backend.
+Wybór `Next.js` jest **świadomy** i przygotowuje fundament pod rozbudowę aplikacji o backend. Docelowo backend będzie oparty na **Supabase**, co zapewni autentykację użytkowników oraz relacyjną bazę danych **PostgreSQL** do synchronizacji i przechowywania danych w chmurze (zgodnie z założeniami z PRD).
 
 ## Decyzja architektoniczna: Undo/Redo — własny Command Pattern (bez `zundo`)
 
