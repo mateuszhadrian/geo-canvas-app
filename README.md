@@ -41,19 +41,19 @@ There is no server. The only persistence mechanisms are the on-screen JSON impor
 
 ## Tech Stack
 
-| Layer | Technology | Notes |
-|---|---|---|
-| Framework | [Next.js 16](https://nextjs.org) (App Router) | SPA; App Router chosen to ease future Supabase backend integration |
-| Canvas | [Konva.js 10](https://konvajs.org) + [react-konva 19](https://github.com/konvajs/react-konva) | Hardware-accelerated HTML5 Canvas |
-| Language | TypeScript 5+ (strict mode) | Fully typed throughout |
-| State | [Zustand 5](https://zustand-demo.pmnd.rs) + [Immer 10](https://immerjs.github.io/immer/) | Six domain slices: shapes, selection, viewport, tool, history, layers |
-| Undo / Redo | Custom Command Pattern history slice | JSON-serialisable commands; `zundo` was evaluated and rejected |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com) | CSS-first config via `@theme`; no JS config file |
-| Color picker | [@uiw/react-color](https://uiwjs.github.io/react-color/) | Sketch-style picker |
-| Icons | [lucide-react](https://lucide.dev) | |
-| Testing | [Jest 29](https://jestjs.io) + [Testing Library](https://testing-library.com) + [Playwright 1.52](https://playwright.dev) | Unit, component, and E2E tests |
-| CI / CD | GitHub Actions | Lint → typecheck → Jest → Playwright on every push |
-| Hosting | [Vercel](https://vercel.com) | Auto-deploys on push to `main`; PR preview deployments |
+| Layer        | Technology                                                                                                                | Notes                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Framework    | [Next.js 16](https://nextjs.org) (App Router)                                                                             | SPA; App Router chosen to ease future Supabase backend integration    |
+| Canvas       | [Konva.js 10](https://konvajs.org) + [react-konva 19](https://github.com/konvajs/react-konva)                             | Hardware-accelerated HTML5 Canvas                                     |
+| Language     | TypeScript 5+ (strict mode)                                                                                               | Fully typed throughout                                                |
+| State        | [Zustand 5](https://zustand-demo.pmnd.rs) + [Immer 10](https://immerjs.github.io/immer/)                                  | Six domain slices: shapes, selection, viewport, tool, history, layers |
+| Undo / Redo  | Custom Command Pattern history slice                                                                                      | JSON-serialisable commands; `zundo` was evaluated and rejected        |
+| Styling      | [Tailwind CSS v4](https://tailwindcss.com)                                                                                | CSS-first config via `@theme`; no JS config file                      |
+| Color picker | [@uiw/react-color](https://uiwjs.github.io/react-color/)                                                                  | Sketch-style picker                                                   |
+| Icons        | [lucide-react](https://lucide.dev)                                                                                        |                                                                       |
+| Testing      | [Jest 29](https://jestjs.io) + [Testing Library](https://testing-library.com) + [Playwright 1.52](https://playwright.dev) | Unit, component, and E2E tests                                        |
+| CI / CD      | GitHub Actions                                                                                                            | Lint → typecheck → Jest → Playwright on every push                    |
+| Hosting      | [Vercel](https://vercel.com)                                                                                              | Auto-deploys on push to `main`; PR preview deployments                |
 
 ### Architectural highlights
 
@@ -87,20 +87,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Available Scripts
 
-| Script | Command | Description |
-|---|---|---|
-| Dev server | `npm run dev` | Start Next.js in development mode with hot reload |
-| Production build | `npm run build` | Build for production |
-| Production server | `npm run start` | Serve the production build |
-| Lint | `npm run lint` | Run ESLint across the project |
-| Type check | `npm run typecheck` | Run `tsc --noEmit` |
-| Unit tests | `npm run test` | Run Jest test suite |
-| Unit tests (watch) | `npm run test:watch` | Run Jest in watch mode |
-| Coverage | `npm run test:coverage` | Run Jest with coverage report |
-| E2E tests | `npm run test:e2e` | Run Playwright tests headlessly |
-| E2E tests (UI) | `npm run test:e2e:ui` | Run Playwright tests with interactive UI |
-| Format | `npm run format` | Format all files with Prettier |
-| Format check | `npm run format:check` | Check formatting without writing files |
+| Script             | Command                 | Description                                       |
+| ------------------ | ----------------------- | ------------------------------------------------- |
+| Dev server         | `npm run dev`           | Start Next.js in development mode with hot reload |
+| Production build   | `npm run build`         | Build for production                              |
+| Production server  | `npm run start`         | Serve the production build                        |
+| Lint               | `npm run lint`          | Run ESLint across the project                     |
+| Type check         | `npm run typecheck`     | Run `tsc --noEmit`                                |
+| Unit tests         | `npm run test`          | Run Jest test suite                               |
+| Unit tests (watch) | `npm run test:watch`    | Run Jest in watch mode                            |
+| Coverage           | `npm run test:coverage` | Run Jest with coverage report                     |
+| E2E tests          | `npm run test:e2e`      | Run Playwright tests headlessly                   |
+| E2E tests (UI)     | `npm run test:e2e:ui`   | Run Playwright tests with interactive UI          |
+| Format             | `npm run format`        | Format all files with Prettier                    |
+| Format check       | `npm run format:check`  | Check formatting without writing files            |
 
 ---
 
