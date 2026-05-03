@@ -21,6 +21,7 @@ E2E (Playwright) jest **informacyjne** (advisory) — uruchamia się w obu workf
 ## Ocena stanu obecnego
 
 ### Co istnieje i jest poprawne
+
 - Reużywalna composite action `node-setup` (`.github/actions/node-setup/action.yml`) z npm cache i `.nvmrc`
 - Wszystkie potrzebne skrypty npm: `lint`, `typecheck`, `test:coverage`, `build`, `test:e2e`, `format:check`
 - ESLint 9 (flat config), Prettier 3.5 skonfigurowane
@@ -29,16 +30,16 @@ E2E (Playwright) jest **informacyjne** (advisory) — uruchamia się w obu workf
 
 ### Problemy do naprawienia
 
-| Problem | Wpływ | Rozwiązanie |
-|---|---|---|
-| 3 nakładające się workflow (ci.yml + pull-request.yml + e2e.yml) | Duplikaty: lint×2, E2E×3 na każdym PR | Konsolidacja do 2 workflow |
-| Brak progów pokrycia w jest.config.js | Progi tylko w dokumentacji, nie egzekwowane | Dodanie `coverageThreshold` |
-| E2E używa `npm run dev` w CI (playwright.config.ts) | Testy dev zamiast produkcji, wolniejsze | Zmiana na `npm start` po buildzie |
-| Statyczny komentarz PR "✅ CI Passed" | Wprowadza w błąd przy testach bez plików | Usunięty (zbędny przy native GitHub checks UI) |
-| Brak integracji Vercel | Brak preview deployments | Dodanie vercel-action |
-| Brak npm audit / Dependabot | Nieznane luki bezpieczeństwa | Dodanie do pipeline + dependabot.yml |
-| Brak `fixture-200-shapes.json` | Plan testów odwołuje się do nieistniejącego pliku | Wygenerowany fixture |
-| Pokrycie canvas 4.76%, sidebar 0% | Niska pewność kodu | Dodane testy jednostkowe |
+| Problem                                                          | Wpływ                                             | Rozwiązanie                                    |
+| ---------------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| 3 nakładające się workflow (ci.yml + pull-request.yml + e2e.yml) | Duplikaty: lint×2, E2E×3 na każdym PR             | Konsolidacja do 2 workflow                     |
+| Brak progów pokrycia w jest.config.js                            | Progi tylko w dokumentacji, nie egzekwowane       | Dodanie `coverageThreshold`                    |
+| E2E używa `npm run dev` w CI (playwright.config.ts)              | Testy dev zamiast produkcji, wolniejsze           | Zmiana na `npm start` po buildzie              |
+| Statyczny komentarz PR "✅ CI Passed"                            | Wprowadza w błąd przy testach bez plików          | Usunięty (zbędny przy native GitHub checks UI) |
+| Brak integracji Vercel                                           | Brak preview deployments                          | Dodanie vercel-action                          |
+| Brak npm audit / Dependabot                                      | Nieznane luki bezpieczeństwa                      | Dodanie do pipeline + dependabot.yml           |
+| Brak `fixture-200-shapes.json`                                   | Plan testów odwołuje się do nieistniejącego pliku | Wygenerowany fixture                           |
+| Pokrycie canvas 4.76%, sidebar 0%                                | Niska pewność kodu                                | Dodane testy jednostkowe                       |
 
 ---
 
@@ -93,40 +94,40 @@ E2E (Playwright) jest **informacyjne** (advisory) — uruchamia się w obu workf
 
 ### Bramki blokujące merge (PR)
 
-| Check | Komenda | Próg |
-|---|---|---|
-| Format | `npm run format:check` | 0 naruszeń |
-| Lint | `npm run lint` | 0 błędów |
-| Typecheck | `npm run typecheck` | 0 błędów |
-| Unit tests | `npm test -- --ci` | 0 failed |
-| Coverage — globalny | `--coverage` | statements ≥60%, branches ≥48%, functions ≥60%, lines ≥60% |
-| Coverage — lib | `--coverage` | statements ≥85%, branches ≥80%, functions ≥85%, lines ≥85% |
-| Coverage — store | `--coverage` | statements ≥80%, branches ≥65%, functions ≥75%, lines ≥80% |
-| Security | `npm audit --audit-level=high` | 0 high/critical |
-| Vercel Preview health | HTTP 200 na preview URL | Deployment zdrowy |
+| Check                 | Komenda                        | Próg                                                       |
+| --------------------- | ------------------------------ | ---------------------------------------------------------- |
+| Format                | `npm run format:check`         | 0 naruszeń                                                 |
+| Lint                  | `npm run lint`                 | 0 błędów                                                   |
+| Typecheck             | `npm run typecheck`            | 0 błędów                                                   |
+| Unit tests            | `npm test -- --ci`             | 0 failed                                                   |
+| Coverage — globalny   | `--coverage`                   | statements ≥60%, branches ≥48%, functions ≥60%, lines ≥60% |
+| Coverage — lib        | `--coverage`                   | statements ≥85%, branches ≥80%, functions ≥85%, lines ≥85% |
+| Coverage — store      | `--coverage`                   | statements ≥80%, branches ≥65%, functions ≥75%, lines ≥80% |
+| Security              | `npm audit --audit-level=high` | 0 high/critical                                            |
+| Vercel Preview health | HTTP 200 na preview URL        | Deployment zdrowy                                          |
 
 ### Bramki informacyjne (nie blokują)
 
-| Check | Cel |
-|---|---|
-| E2E Playwright | Regresje UX, pełne user flows |
+| Check                    | Cel                             |
+| ------------------------ | ------------------------------- |
+| E2E Playwright           | Regresje UX, pełne user flows   |
 | Coverage report artifact | Historia pokrycia w artifactach |
 
 ### Rzeczywiste pokrycie kodu po tej PR
 
-| Katalog | Przed | Po | Status |
-|---|---|---|---|
-| `src/lib/` | 88.88% | 88.88% | ✅ (próg: 85%) |
-| `src/store/` | 82.3% | 82.3% | ✅ (próg: 80%) |
-| `src/shapes/circle/` | 40.22% | 68.83% | ✅ |
-| `src/shapes/ellipse/` | 37.63% | 71.08% | ✅ |
-| `src/shapes/line/` | 53.19% | 92.85% | ✅ |
-| `src/shapes/rect/` | 34.25% | 65.62% | ✅ |
-| `src/shapes/triangle/` | 34.84% | 92.85% | ✅ |
-| `src/components/toolbar/` | 90.24% | 90.24% | ✅ |
-| `src/components/sidebar/` | 0% | 39.87% | ⚠️ (tylko LayersSidebar, PropertiesSidebar = 0%) |
-| `src/components/canvas/*` (unit-testowalne) | 4.76% | 96.36% | ✅ (JsonImportInput + PictureDataDisplay) |
-| **Global (bez Konva renderers)** | 32.33% | **74.07%** | **✅ (próg: 60%)** |
+| Katalog                                     | Przed  | Po         | Status                                           |
+| ------------------------------------------- | ------ | ---------- | ------------------------------------------------ |
+| `src/lib/`                                  | 88.88% | 88.88%     | ✅ (próg: 85%)                                   |
+| `src/store/`                                | 82.3%  | 82.3%      | ✅ (próg: 80%)                                   |
+| `src/shapes/circle/`                        | 40.22% | 68.83%     | ✅                                               |
+| `src/shapes/ellipse/`                       | 37.63% | 71.08%     | ✅                                               |
+| `src/shapes/line/`                          | 53.19% | 92.85%     | ✅                                               |
+| `src/shapes/rect/`                          | 34.25% | 65.62%     | ✅                                               |
+| `src/shapes/triangle/`                      | 34.84% | 92.85%     | ✅                                               |
+| `src/components/toolbar/`                   | 90.24% | 90.24%     | ✅                                               |
+| `src/components/sidebar/`                   | 0%     | 39.87%     | ⚠️ (tylko LayersSidebar, PropertiesSidebar = 0%) |
+| `src/components/canvas/*` (unit-testowalne) | 4.76%  | 96.36%     | ✅ (JsonImportInput + PictureDataDisplay)        |
+| **Global (bez Konva renderers)**            | 32.33% | **74.07%** | **✅ (próg: 60%)**                               |
 
 **Uwaga o wykluczeniach z coverage**: Komponenty react-konva (`CanvasApp`, `ShapeHandles`, `GridBackground`, itd.) i `Renderer.tsx` per shape są wykluczone z kolekcji unit test coverage — są testowane przez E2E per plan testów (fazy 2-3). Wykluczone są też pliki `index.ts` per shape (czyste re-eksporty bez logiki wykonywalnej). To podejście jest zgodne z test planem, który explicite oznacza te komponenty jako `(E2E)`.
 
@@ -508,11 +509,11 @@ Przejdź do: **GitHub → repo → Settings → Secrets and variables → Action
 
 Dodaj następujące sekrety (wartości z Kroku 4 — Vercel):
 
-| Nazwa sekreta | Skąd wziąć |
-|---|---|
-| `VERCEL_TOKEN` | Vercel → Settings → Tokens → Create |
-| `VERCEL_ORG_ID` | Plik `.vercel/project.json` (po `vercel link`) — pole `orgId` |
-| `VERCEL_PROJECT_ID` | Plik `.vercel/project.json` — pole `projectId` |
+| Nazwa sekreta       | Skąd wziąć                                                    |
+| ------------------- | ------------------------------------------------------------- |
+| `VERCEL_TOKEN`      | Vercel → Settings → Tokens → Create                           |
+| `VERCEL_ORG_ID`     | Plik `.vercel/project.json` (po `vercel link`) — pole `orgId` |
+| `VERCEL_PROJECT_ID` | Plik `.vercel/project.json` — pole `projectId`                |
 
 #### 3.2 Zezwól GitHub Actions na komentowanie PR
 
@@ -547,6 +548,7 @@ vercel link
 ```
 
 Odpowiedz na pytania:
+
 - `Set up "geo-canvas-app"?` → **Y**
 - `Which scope?` → wybierz swoje konto (tenhadrian lub ewentualnie personal account)
 - `Link to existing project?` → **N** (tworzymy nowy)
@@ -594,6 +596,7 @@ Vercel automatycznie deployuje wszystkie branchy — każdy dostaje swój unikal
 3. W sekcji **"Preview Branches"**: branch `staging` pojawi się automatycznie po pierwszym pushu
 
 Dodaj alias dla stabilnego URL stagingowego:
+
 1. Vercel Dashboard → projekt → **Settings → Domains**
 2. Kliknij **"Add Domain"** → wpisz `geo-canvas-staging.vercel.app`
 3. Przypisz do brancha `staging`
@@ -617,57 +620,57 @@ Plik: `.github/dependabot.yml`
 version: 2
 
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Europe/Warsaw"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Europe/Warsaw'
     open-pull-requests-limit: 5
     groups:
       dev-dependencies:
         patterns:
-          - "@types/*"
-          - "eslint*"
-          - "prettier"
-          - "jest*"
-          - "@testing-library/*"
-          - "@playwright/*"
-          - "typescript"
+          - '@types/*'
+          - 'eslint*'
+          - 'prettier'
+          - 'jest*'
+          - '@testing-library/*'
+          - '@playwright/*'
+          - 'typescript'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       production-dependencies:
         patterns:
-          - "next"
-          - "react"
-          - "react-dom"
-          - "zustand"
-          - "immer"
-          - "konva"
-          - "react-konva"
+          - 'next'
+          - 'react'
+          - 'react-dom'
+          - 'zustand'
+          - 'immer'
+          - 'konva'
+          - 'react-konva'
         update-types:
-          - "patch"
+          - 'patch'
     ignore:
-      - dependency-name: "next"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: 'next'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
     labels:
-      - "dependencies"
+      - 'dependencies'
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Europe/Warsaw"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Europe/Warsaw'
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
-      - "github-actions"
+      - 'dependencies'
+      - 'github-actions'
 ```
 
 ### Krok 6: Zarządzanie zmiennymi środowiskowymi
@@ -722,11 +725,13 @@ webServer: {
 Po wykonaniu wszystkich kroków:
 
 1. **Lokalny test jakości:**
+
    ```bash
    npm run format:check && npm run lint && npm run typecheck && npm test -- --ci --coverage
    ```
 
 2. **Test integracji Vercel:**
+
    ```bash
    git checkout -b test/pipeline-smoke
    git commit --allow-empty -m "test: smoke test pipeline"
@@ -777,6 +782,7 @@ Po wykonaniu wszystkich kroków:
 ### Faza 3: Podnoszenie progów (test plan fazy 1–2)
 
 Po napisaniu pełnego zestawu testów z test planu:
+
 - Podnieś `./src/shapes/` threshold do 75%
 - Podnieś `./src/components/sidebar/` do 60%
 - Dodaj próg dla `./src/components/canvas/` gdy pokrycie osiągnie 30%+
@@ -795,6 +801,7 @@ Po napisaniu pełnego zestawu testów z test planu:
 ### Rotacja Vercel Token
 
 Token należy rotować co ~6 miesięcy:
+
 1. Vercel → Settings → Tokens → Create new
 2. GitHub → Settings → Secrets → zaktualizuj `VERCEL_TOKEN`
 3. Stary token → Revoke
@@ -838,19 +845,20 @@ W `pr.yml` job `unit-tests`, dodaj krok wgrywający coverage jako PR comment prz
 
 ### Użyte GitHub Actions
 
-| Action | Wersja | Cel |
-|---|---|---|
-| `actions/checkout` | v4 | Checkout kodu |
-| `actions/setup-node` | v4 | Node.js z cache |
-| `actions/upload-artifact` | v4 | Artefakty |
-| `actions/download-artifact` | v4 | Pobieranie artefaktów |
-| `actions/cache` | v4 | Cache Next.js build |
-| `amondnet/vercel-action` | v25 | Deploy do Vercel |
-| `actions/github-script` | v7 | Komentarze PR (quality-gate) |
+| Action                      | Wersja | Cel                          |
+| --------------------------- | ------ | ---------------------------- |
+| `actions/checkout`          | v4     | Checkout kodu                |
+| `actions/setup-node`        | v4     | Node.js z cache              |
+| `actions/upload-artifact`   | v4     | Artefakty                    |
+| `actions/download-artifact` | v4     | Pobieranie artefaktów        |
+| `actions/cache`             | v4     | Cache Next.js build          |
+| `amondnet/vercel-action`    | v25    | Deploy do Vercel             |
+| `actions/github-script`     | v7     | Komentarze PR (quality-gate) |
 
 ### Koszty GitHub Actions (orientacyjnie)
 
 Przy 10 PR/miesiąc i 2 pushach do main/tydzień:
+
 - PR workflow: ~8 min × 10 = ~80 min/miesiąc
 - Main workflow: ~6 min × 8 = ~48 min/miesiąc
 - Łącznie: ~128 min/miesiąc → **mieści się w darmowym limicie GitHub Free (2000 min/miesiąc)**
