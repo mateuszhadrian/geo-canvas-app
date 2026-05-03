@@ -73,11 +73,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/node-setup
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build-pr-${{ github.event.pull_request.number }}
-          path: .next/
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run E2E tests
