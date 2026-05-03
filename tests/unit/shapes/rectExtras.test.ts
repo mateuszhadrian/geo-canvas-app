@@ -41,7 +41,11 @@ describe('captureRectStart', () => {
   it('captures x, y, rotation, width and height', () => {
     const rect = buildRect({ id: 'r', x: 10, y: 20, width: 80, height: 50, rotation: 90 })
     const snap = captureRectStart(rect) as {
-      x: number; y: number; rotation: number; width: number; height: number
+      x: number
+      y: number
+      rotation: number
+      width: number
+      height: number
     }
     expect(snap.x).toBe(10)
     expect(snap.y).toBe(20)

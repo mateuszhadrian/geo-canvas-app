@@ -49,7 +49,10 @@ describe('captureTriangleStart', () => {
   it('captures x, y, rotation and a copy of vertices', () => {
     const tri = buildTriangle({ id: 't', x: 10, y: 20, rotation: 45, vertices: VERTS })
     const snap = captureTriangleStart(tri) as {
-      x: number; y: number; rotation: number; vertices: TriangleVertices
+      x: number
+      y: number
+      rotation: number
+      vertices: TriangleVertices
     }
     expect(snap.x).toBe(10)
     expect(snap.y).toBe(20)
@@ -68,7 +71,10 @@ describe('captureTriangleGeometry', () => {
   it('returns x, y, rotation and vertices', () => {
     const tri = buildTriangle({ id: 't', x: 5, y: 10, rotation: 0, vertices: VERTS })
     const geom = captureTriangleGeometry(tri) as {
-      x: number; y: number; rotation: number; vertices: TriangleVertices
+      x: number
+      y: number
+      rotation: number
+      vertices: TriangleVertices
     }
     expect(geom.x).toBe(5)
     expect(geom.y).toBe(10)

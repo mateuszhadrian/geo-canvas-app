@@ -40,7 +40,11 @@ describe('captureEllipseStart', () => {
   it('captures x, y, rotation, radiusX and radiusY', () => {
     const ellipse = buildEllipse({ id: 'e', x: 10, y: 20, radiusX: 60, radiusY: 40, rotation: 45 })
     const snap = captureEllipseStart(ellipse) as {
-      x: number; y: number; rotation: number; radiusX: number; radiusY: number
+      x: number
+      y: number
+      rotation: number
+      radiusX: number
+      radiusY: number
     }
     expect(snap.x).toBe(10)
     expect(snap.y).toBe(20)
@@ -54,7 +58,11 @@ describe('captureEllipseGeometry', () => {
   it('returns x, y, rotation, radiusX and radiusY', () => {
     const ellipse = buildEllipse({ id: 'e', x: 5, y: 10, radiusX: 60, radiusY: 40, rotation: 0 })
     expect(captureEllipseGeometry(ellipse)).toEqual({
-      x: 5, y: 10, rotation: 0, radiusX: 60, radiusY: 40,
+      x: 5,
+      y: 10,
+      rotation: 0,
+      radiusX: 60,
+      radiusY: 40,
     })
   })
 })

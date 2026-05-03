@@ -47,7 +47,12 @@ describe('getCircleHandles', () => {
 describe('captureCircleStart', () => {
   it('captures x, y, rotation and radius', () => {
     const circle = buildCircle({ id: 'c', x: 100, y: 200, radius: 45, rotation: 30 })
-    const snapshot = captureCircleStart(circle) as { x: number; y: number; rotation: number; radius: number }
+    const snapshot = captureCircleStart(circle) as {
+      x: number
+      y: number
+      rotation: number
+      radius: number
+    }
     expect(snapshot.x).toBe(100)
     expect(snapshot.y).toBe(200)
     expect(snapshot.rotation).toBe(30)

@@ -6,7 +6,12 @@ import { buildLine } from '../../helpers/buildShape'
 describe('captureLineGeometry', () => {
   it('returns x, y, rotation and a copy of points', () => {
     const line = buildLine({ id: 'l', x: 10, y: 20, rotation: 0, points: [0, 0, 100, 50] })
-    const geom = captureLineGeometry(line) as { x: number; y: number; rotation: number; points: number[] }
+    const geom = captureLineGeometry(line) as {
+      x: number
+      y: number
+      rotation: number
+      points: number[]
+    }
     expect(geom.x).toBe(10)
     expect(geom.y).toBe(20)
     expect(geom.rotation).toBe(0)
