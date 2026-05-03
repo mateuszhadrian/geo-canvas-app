@@ -103,14 +103,22 @@ jobs:
       - uses: ./.github/actions/node-setup
       - name: Deploy Preview to Vercel
         id: deploy
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-comment: true
-          working-directory: ./
+        run: |
+          DEPLOYMENT_URL=$(npx vercel@latest deploy --token ${{ secrets.VERCEL_TOKEN }} --yes 2>/dev/null | tail -1)
+          echo "preview-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Preview URL: $DEPLOYMENT_URL"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Comment preview URL on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview-url }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "## Preview Deployment
+          Deployed to: $PREVIEW_URL" \
+            --repo ${{ github.repository }}
 
   vercel-health-check:
     name: Vercel Preview Health Check
