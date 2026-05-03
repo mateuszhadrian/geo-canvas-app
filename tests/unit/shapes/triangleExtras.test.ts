@@ -62,7 +62,7 @@ describe('captureTriangleStart', () => {
 
   it('snapshot vertices are a copy, not same reference', () => {
     const tri = buildTriangle({ id: 't', vertices: VERTS })
-    const snap = captureTriangleStart(tri) as { vertices: TriangleVertices }
+    const snap = captureTriangleStart(tri) as unknown as { vertices: TriangleVertices }
     expect(snap.vertices).not.toBe(tri.vertices)
   })
 })
