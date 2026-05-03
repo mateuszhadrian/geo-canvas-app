@@ -1,0 +1,162 @@
+name: Pull Request Quality Gate
+
+on:
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  quality:
+    name: Format, Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/node-setup
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+
+  unit-tests:
+    name: Unit Tests & Coverage
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/node-setup
+      - name: Run tests with coverage
+        run: npm test -- --ci --coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-coverage
+          path: coverage/
+          retention-days: 14
+
+  security:
+    name: Security Audit
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/node-setup
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+  build:
+    name: Production Build
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/node-setup
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.css') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}-
+      - name: Build
+        run: npm run build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build-pr-${{ github.event.pull_request.number }}
+          path: .next/
+          retention-days: 1
+
+  e2e-advisory:
+    name: E2E Tests (Advisory)
+    needs: build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/node-setup
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E tests
+        run: npx playwright test --pass-with-no-tests
+        env:
+          CI: true
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-pr-${{ github.event.pull_request.number }}
+          path: playwright-report/
+          retention-days: 7
+
+  vercel-preview:
+    name: Vercel Preview Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.preview-url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/node-setup
+      - name: Deploy Preview to Vercel
+        id: deploy
+        run: |
+          DEPLOYMENT_URL=$(npx vercel@latest deploy --token ${{ secrets.VERCEL_TOKEN }} --yes 2>/dev/null | tail -1)
+          echo "preview-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Preview URL: $DEPLOYMENT_URL"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Comment preview URL on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview-url }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "## Preview Deployment
+          Deployed to: $PREVIEW_URL" \
+            --repo ${{ github.repository }}
+
+  vercel-health-check:
+    name: Vercel Preview Health Check
+    needs: vercel-preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployment to be healthy
+        run: |
+          URL="${{ needs.vercel-preview.outputs.preview-url }}"
+          echo "Checking health of: $URL"
+          MAX_RETRIES=10
+          RETRY=0
+          while [ $RETRY -lt $MAX_RETRIES ]; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "Attempt $((RETRY+1))/$MAX_RETRIES: HTTP $STATUS"
+            if [ "$STATUS" -eq 200 ]; then
+              echo "✅ Deployment is healthy"
+              exit 0
+            fi
+            RETRY=$((RETRY+1))
+            sleep 15
+          done
+          echo "❌ Deployment did not become healthy after $MAX_RETRIES attempts"
+          exit 1
+
+  quality-gate:
+    name: All Checks Passed
+    needs: [unit-tests, security, vercel-health-check]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate results
+        run: |
+          UNIT="${{ needs.unit-tests.result }}"
+          SECURITY="${{ needs.security.result }}"
+          VERCEL="${{ needs.vercel-health-check.result }}"
+          echo "unit-tests: $UNIT"
+          echo "security:   $SECURITY"
+          echo "vercel:     $VERCEL"
+          if [[ "$UNIT" == "success" && "$SECURITY" == "success" && "$VERCEL" == "success" ]]; then
+            echo "✅ All required checks passed."
+            exit 0
+          else
+            echo "❌ One or more required checks failed."
+            exit 1
+          fi
