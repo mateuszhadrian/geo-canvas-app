@@ -45,7 +45,7 @@
     "jest-canvas-mock": "^2.5.2",
     "jest-environment-jsdom": "^29.7.0",
     "prettier": "^3.5.3",
-    "typescript": "^5.9.0"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=20.9.0"
