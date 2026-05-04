@@ -20,7 +20,7 @@
     "@uiw/react-color": "^2.3.0",
     "immer": "^10.1.1",
     "konva": "^10.2.5",
-    "lucide-react": "^1.11.0",
+    "lucide-react": "^1.14.0",
     "next": "^16.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
