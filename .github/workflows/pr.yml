@@ -90,6 +90,7 @@ jobs:
   vercel-preview:
     name: Vercel Preview Deploy
     needs: build
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     outputs:
       preview-url: ${{ steps.deploy.outputs.preview-url }}
@@ -118,6 +119,7 @@ jobs:
   vercel-health-check:
     name: Vercel Preview Health Check
     needs: vercel-preview
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Wait for deployment to be healthy
@@ -153,7 +155,7 @@ jobs:
           echo "unit-tests: $UNIT"
           echo "security:   $SECURITY"
           echo "vercel:     $VERCEL"
-          if [[ "$UNIT" == "success" && "$SECURITY" == "success" && "$VERCEL" == "success" ]]; then
+          if [[ "$UNIT" == "success" && "$SECURITY" == "success" && ("$VERCEL" == "success" || "$VERCEL" == "skipped") ]]; then
             echo "✅ All required checks passed."
             exit 0
           else
